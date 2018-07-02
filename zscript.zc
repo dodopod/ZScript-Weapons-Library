@@ -1,0 +1,8 @@
+version "3.2"
+
+#include "zscript/zwl/zbullet_puff.zc"
+#include "zscript/zwl/zcasing.zc"
+#include "zscript/zwl/zweapon.zc"
+
+#include "zscript/doom_weapons.zc"
+#include "zscript/status_bar.zc"

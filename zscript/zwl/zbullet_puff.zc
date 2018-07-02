@@ -1,0 +1,113 @@
+class ZBulletPuff : BulletPuff
+{
+    const epsilon = 4;
+
+    Default
+    {
+        Decal "BulletChip";
+    }
+
+	States
+	{
+	Spawn:
+		PUFF A 4 Bright;
+		PUFF B 4;
+        // Fallthrough
+    Melee:
+		PUFF CD 4;
+		Stop;
+    Crash:
+		PUFF A 4 Bright
+        {
+            if (Abs(pos.z - GetZAt()) <= epsilon)
+            {
+                Spawn("ZBulletChip", (pos.x, pos.y, GetZAt()));
+            }
+            else if (Abs(pos.z - GetZAt(flags:GZF_Ceiling)) <= epsilon)
+            {
+                Spawn("ZBulletChip", (pos.x, pos.y, GetZAt(flags:GZF_Ceiling)));
+            }
+        }
+        PUFF BCD 4;
+        Stop;
+	}
+}
+
+class ZFlatDecal : Actor
+{
+    bool randomFlipX,
+         randomFlipY;
+
+    Property RandomFlip : randomFlipX, randomFlipY;
+
+    Default
+    {
+        Height 0;
+        Radius 0;
+
+        RenderStyle "Shaded";
+
+        +NoTeleport
+        +FlatSprite
+        +NoBlockMap
+        +NoGravity
+        +MoveWithSector
+    }
+
+    override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+
+        scale.x *= randomFlipX ? RandomPick(1, -1) : 1;
+        scale.y *= randomFlipY ? RandomPick(1, -1) : 1;
+    }
+}
+
+class ZBulletChip : ZFlatDecal
+{
+    Default
+    {
+        Scale 0.5;
+        Alpha 0.85;
+        StencilColor "black";
+        ZFlatDecal.RandomFlip true, true;
+    }
+
+    States
+    {
+    Spawn:
+        TNT1 A 0 NoDelay
+        {
+            return curState + Random(1, 5);
+        }
+        CHIP ABCDE -1;
+        Stop;
+    }
+}
+
+
+class ZFlatDecalKiller : EventHandler
+{
+    Array<ZFlatDecal> flatDecals;
+    int back;
+
+    override void WorldThingSpawned(WorldEvent e)
+    {
+        if (!ZFlatDecal(e.thing)) return;
+
+        int maxFlatDecals = CVar.FindCVar('zwl_maxflatdecals').GetInt();
+        if (flatDecals.Size() <= back)
+        {
+            flatDecals.Push(ZFlatDecal(e.thing));
+        }
+        else
+        {
+            if (flatDecals[back])
+                flatDecals[back].Destroy();
+
+            flatDecals[back] = ZFlatDecal(e.thing);
+        }
+
+        back = (back + 1) % maxFlatDecals;
+    }
+}

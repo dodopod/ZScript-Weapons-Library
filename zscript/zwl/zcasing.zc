@@ -1,0 +1,43 @@
+class ZCasing : Actor
+{
+    Default
+    {
+        Height 4;
+        Radius 2;
+
+        BounceType "Doom";
+        BounceFactor 0.5;
+        WallBounceFactor 0.5;
+
+        +Missile
+        +Dropoff
+        +NoBlockMap
+        +ThruActors
+    }
+}
+
+class ZCasingKiller : EventHandler
+{
+    Array<ZCasing> casings;
+    int back;
+
+    override void WorldThingSpawned(WorldEvent e)
+    {
+        if (!ZCasing(e.thing)) return;
+
+        int maxCasings = CVar.FindCVar('zwl_maxcasings').GetInt();
+        if (casings.Size() <= back)
+        {
+            casings.Push(ZCasing(e.thing));
+        }
+        else
+        {
+            if (casings[back])
+                casings[back].Destroy();
+
+            casings[back] = ZCasing(e.thing);
+        }
+
+        back = (back + 1) % maxCasings;
+    }
+}

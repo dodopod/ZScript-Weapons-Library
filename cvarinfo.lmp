@@ -1,0 +1,3 @@
+server int zwl_maxflatdecals = 1024;
+server int zwl_maxcasings = 1024;
+server bool zwl_autoreload = true;
