@@ -40,4 +40,29 @@ class ZCasingKiller : EventHandler
 
         back = (back + 1) % maxCasings;
     }
+
+    override void WorldTick()
+    {
+        int maxCasings = CVar.FindCVar('zwl_maxcasings').GetInt();
+        if (casings.Size() > maxCasings)
+        {
+            Array<ZCasing> newCasings;
+
+            int excess = casings.Size() - maxCasings;
+
+            for (int i = 0; i < casings.Size(); ++i)
+            {
+                if (i < excess)
+                    casings[back].Destroy();
+                else
+                    newCasings.Push(casings[back]);
+
+                // Back is just a convenient counter; it isn't being used as the back of the queue, here
+                back = (back + 1) % casings.Size();
+            }
+
+            back = 0;
+            casings.Move(newCasings);
+        }
+    }
 }

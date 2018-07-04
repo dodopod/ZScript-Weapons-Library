@@ -96,7 +96,7 @@ class ZFlatDecalKiller : EventHandler
         if (!ZFlatDecal(e.thing)) return;
 
         int maxFlatDecals = CVar.FindCVar('zwl_maxflatdecals').GetInt();
-        if (flatDecals.Size() <= back)
+        if (flatDecals.Size() < maxFlatDecals)
         {
             flatDecals.Push(ZFlatDecal(e.thing));
         }
@@ -109,5 +109,30 @@ class ZFlatDecalKiller : EventHandler
         }
 
         back = (back + 1) % maxFlatDecals;
+    }
+
+    override void WorldTick()
+    {
+        int maxFlatDecals = CVar.FindCVar('zwl_maxflatdecals').GetInt();
+        if (flatDecals.Size() > maxFlatDecals)
+        {
+            Array<ZFlatDecal> newFlatDecals;
+
+            int excess = flatDecals.Size() - maxFlatDecals;
+
+            for (int i = 0; i < flatDecals.Size(); ++i)
+            {
+                if (i < excess)
+                    flatDecals[back].Destroy();
+                else
+                    newFlatDecals.Push(flatDecals[back]);
+
+                // Back is just a convenient counter; it isn't being used as the back of the queue, here
+                back = (back + 1) % flatDecals.Size();
+            }
+
+            back = 0;
+            flatDecals.Move(newFlatDecals);
+        }
     }
 }
