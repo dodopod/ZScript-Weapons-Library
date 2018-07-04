@@ -1,6 +1,4 @@
 GameInfo
 {
-    PlayerClasses = "ZWeaponPlayer"
-    StatusBarClass = "ZStatusBar"
     AddEventHandlers = "ZCasingKiller", "ZFlatDecalKiller"
 }

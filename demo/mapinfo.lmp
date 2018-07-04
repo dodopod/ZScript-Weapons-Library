@@ -1,0 +1,5 @@
+GameInfo
+{
+    PlayerClasses = "ZWeaponPlayer"
+    StatusBarClass = "ZStatusBar"
+}
