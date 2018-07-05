@@ -1,7 +1,5 @@
 class ZBulletPuff : BulletPuff
 {
-    const epsilon = 4;
-
     Default
     {
         Decal "BulletChip";
@@ -17,10 +15,7 @@ class ZBulletPuff : BulletPuff
 		PUFF CD 4;
 		Stop;
     Crash:
-		PUFF A 4 Bright
-        {
-            invoker.Spawn("ZBulletChip", pos);
-        }
+		PUFF A 4 Bright A_SpawnItemEx("ZBulletChip");
         PUFF BCD 4;
         Stop;
 	}
@@ -53,13 +48,29 @@ class ZFlatDecal : Actor
     {
         Super.PostBeginPlay();
 
+        // Random flip
         scale.x *= randomFlipX ? RandomPick(1, -1) : 1;
         scale.y *= randomFlipY ? RandomPick(1, -1) : 1;
 
+        // Stick to floor/ceiling
+        SecPlane plane;
         if (Abs(pos.z - GetZAt()) <= epsilon)
+        {
             SetZ(GetZAt());
+            plane = curSector.floorPlane;
+        }
         else if (Abs(pos.z - GetZAt(flags:GZF_Ceiling)) <= epsilon)
+        {
             SetZ(GetZAt(flags:GZF_Ceiling));
+            plane = curSector.ceilingPlane;
+        }
+
+        // Tilt to match slopes
+        let normal = plane.normal;
+        angle = VectorAngle(normal.x, normal.y);
+
+        normal.xy = RotateVector(normal.xy, -angle);
+        pitch = -VectorAngle(normal.x, normal.z) + 90;
     }
 }
 
