@@ -19,14 +19,7 @@ class ZBulletPuff : BulletPuff
     Crash:
 		PUFF A 4 Bright
         {
-            if (Abs(pos.z - GetZAt()) <= epsilon)
-            {
-                Spawn("ZBulletChip", (pos.x, pos.y, GetZAt()));
-            }
-            else if (Abs(pos.z - GetZAt(flags:GZF_Ceiling)) <= epsilon)
-            {
-                Spawn("ZBulletChip", (pos.x, pos.y, GetZAt(flags:GZF_Ceiling)));
-            }
+            invoker.Spawn("ZBulletChip", pos);
         }
         PUFF BCD 4;
         Stop;
@@ -35,6 +28,8 @@ class ZBulletPuff : BulletPuff
 
 class ZFlatDecal : Actor
 {
+    const epsilon = 4;
+
     bool randomFlipX,
          randomFlipY;
 
@@ -60,6 +55,11 @@ class ZFlatDecal : Actor
 
         scale.x *= randomFlipX ? RandomPick(1, -1) : 1;
         scale.y *= randomFlipY ? RandomPick(1, -1) : 1;
+
+        if (Abs(pos.z - GetZAt()) <= epsilon)
+            SetZ(GetZAt());
+        else if (Abs(pos.z - GetZAt(flags:GZF_Ceiling)) <= epsilon)
+            SetZ(GetZAt(flags:GZF_Ceiling));
     }
 }
 
