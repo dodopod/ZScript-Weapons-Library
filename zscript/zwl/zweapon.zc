@@ -80,25 +80,23 @@ class ZWeapon : Weapon
 
     override void Tick()
     {
-        Super.Tick();
-
         if (owner && owner.player && owner.player.readyWeapon == self)
             pressed |= owner.player.cmd.buttons & ~owner.player.oldbuttons;
+
+        Super.Tick();
 
         AttackLoopTick();
     }
 
 
     // Does the same thing as A_WeaponReady. It has similar flags (see above).
-    action State ZWL_WeaponReady(int flags = 0)
+    action void ZWL_WeaponReady(int flags = 0)
     {
         invoker.lastShotTic = 0;
         invoker.deficit = 0.0;
 
         ZWL_StopAttackLoop();
-
-        State st = invoker.CheckReload(!(flags & ZRF_NoReload), !(flags & ZRF_NoPartialReload), flags & ZRF_ExtraRound);
-        if (st) return st;
+        invoker.CheckMagazine(true);
 
         // Empty weapon click
         if (invoker.JustPressed(BT_Attack) && invoker.IsEmpty() || invoker.GetAltAtkState(false)
@@ -107,7 +105,7 @@ class ZWeapon : Weapon
 
         A_WeaponReady(invoker.ConvertReadyFlags(flags));
 
-        return st;
+        return null;
     }
 
 
@@ -116,20 +114,19 @@ class ZWeapon : Weapon
     Params:
      - fullAuto: If false, weapon only fires if Attack was released and pressed again.
     */
-    action State ZWL_ReFire(StateLabel holdState = null, bool fullAuto = true)
+    action void ZWL_ReFire(StateLabel holdState = null, bool fullAuto = true)
     {
         if (invoker.bAltFire && !invoker.CheckAmmo(AltFire, false, true) || !invoker.bAltFire && invoker.IsEmpty())
             ZWL_StopAttackLoop();
 
-        State st = invoker.CheckReload(false);
-        if (st) return st;
+        invoker.CheckMagazine(true);
 
         if (fullAuto || invoker.JustPressed(BT_Attack) || invoker.JustPressed(BT_AltAttack))
             A_ReFire(holdState);
         else
             A_CheckReload();
 
-        return ResolveState(null);
+        return null;
     }
 
 
@@ -183,10 +180,6 @@ class ZWeapon : Weapon
                                 int tracerFreq = 1, Vector3 offset = (0, 0, 0), int flags = 0)
     {
         int rounds = fireRate > 0 ? invoker.RoundCount(fireRate) : 1;
-        if (!(flags & ZHF_DontUseAmmo))
-        {
-            rounds = invoker.DrainAmmo(invoker.bAltFire, rounds);
-        }
 
         if (!(flags & ZHF_NoSound) && rounds > 0)
             ZWL_StartAttackLoop();
@@ -197,6 +190,9 @@ class ZWeapon : Weapon
 
         for (int i = 0; i < rounds; ++i)
         {
+            if (!invoker.DepleteAmmo(invoker.bAltFire))
+                break;
+
             double shotAngle, shotPitch;
             [shotAngle, shotPitch] = invoker.BulletAngle(accuracy, angle, aimPitch);
 
@@ -403,8 +399,8 @@ class ZWeapon : Weapon
 
         if (self.ammoCount < (ammoCount < 0 ? ammoUse1 : ammoCount))
         {
-            if (autoReload)
-                SetState(GetReloadState(true));
+            if (autoReload && owner && owner.player)
+                owner.player.GetPSprite(PSP_Weapon).SetState(GetReloadState(true));
 
             return false;
         }
@@ -484,25 +480,11 @@ class ZWeapon : Weapon
 
         wrf |= !(flags & ZRF_NoZoom) ? WRF_AllowZoom : 0;
 
+        // WasPressed is because we have to reset the reload button in order for reload cancelling to work.
+        wrf |= !(flags & ZRF_NoReload) && !IsFull(flags & ZRF_ExtraRound)
+            && (CheckMagazine(false) || !(flags & ZRF_NoPartialReload)) && WasPressed(BT_Reload) ? WRF_AllowReload : 0;
+
         return wrf;
-    }
-
-
-    State CheckReload(bool manual, bool partial = true, bool extraRound = false)
-    {
-        if (!owner || !owner.player || !CanReload()) return null;
-
-        player = owner.player;
-
-        // Disable auto-switch when weapon isn't empty
-        bAmmo_Optional = !IsEmpty();
-
-        bool autoReload = CVar.FindCVar('zwl_autoreload').GetBool();
-        if (CheckAmmo(PrimaryFire, false, true) && (autoReload && IsEmpty()
-                || manual && partial && WasPressed(BT_Reload) && !IsFull(extraRound)))
-            return GetReloadState(IsEmpty());
-
-        return ResolveState(null);
     }
 
     State GetReloadState(bool empty)
@@ -574,32 +556,6 @@ class ZWeapon : Weapon
                 return ammo ? ammo.amount : 0;
             }
         }
-    }
-
-
-    // Drains 1 (or more) shots worth of ammo
-    // Returns # of shots drained
-    // Params:
-    //  - altFire: true if draining alternate ammo
-    //  - multiplier: how many shots
-    int DrainAmmo(bool altFire, int multiplier = 1)
-    {
-        if (magazineSize > 0)
-        {
-            multiplier = Min(ammoCount / ammoUse1, multiplier);  // Don't fire more ammo that we have
-            ammoCount -= multiplier * ammoUse1;
-        }
-        else
-        {
-            Inventory ammo = owner.FindInventory(ammoType1);
-            if (ammo)
-            {
-                multiplier = Min(ammo.amount / ammoUse1, multiplier);
-                ammo.amount -= multiplier * ammoUse1;
-            }
-        }
-
-        return multiplier;
     }
 
 
