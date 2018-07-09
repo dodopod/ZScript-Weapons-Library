@@ -386,31 +386,6 @@ class ZWeapon : Weapon
     }
 
 
-    override bool CheckAmmo(int fireMode, bool autoSwitch, bool requireAmmo = false, int ammocount = -1)
-    {
-        bool enough;
-
-        switch (fireMode)
-        {
-        case PrimaryFire:
-            if (magazineSize > 0)
-                enough = ammo1.amount > ammoUse1;
-            if (!enough)
-                enough = CheckAmmo(fireMode, autoSwitch, requireAmmo, ammoCount);
-            break;
-        case AltFire:
-            enough = CheckAmmo(fireMode, autoSwitch, requireAmmo, ammoCount);
-            break;
-        case EitherFire:
-            enough = CheckAmmo(PrimaryFire, autoSwitch, requireAmmo, ammoCount)
-                || CheckAmmo(fireMode, autoSwitch, requireAmmo, ammoCount);
-            break;
-        }
-
-        return enough;
-    }
-
-
     // Everything below here is just helper functions. I'll document them later.
 
     void AttackLoopTick()
