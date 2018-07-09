@@ -386,6 +386,64 @@ class ZWeapon : Weapon
     }
 
 
+    /*
+    Returns true if weapon has enough ammo in its magazine to fire.
+    Params:
+     - autoReload: Reload weapon if it doesn't have enough ammo.
+     - requireAmmo: If true, overrides Ammo_Optional flag.
+     - ammoCount: How much ammo is required. Defaults to AmmoUse1 if < 0.
+    */
+    virtual bool CheckMagazine(bool autoReload, bool requireAmmo = false, int ammoCount = -1)
+    {
+        if (magazineSize <= 0)
+            return false;
+
+        if (!requireAmmo && Default.bAmmo_Optional)
+            return true;
+
+        if (self.ammoCount < (ammoCount < 0 ? ammoUse1 : ammoCount))
+        {
+            if (autoReload)
+                SetState(GetReloadState(true));
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    /*
+    Removes ammo from magazine or inventory.
+    Params:
+     - altFire: Whether to deplete primary or secondary ammo. Note: [Primary|Alt]_Uses_Both flags modify behavior.
+     - checkEnough: If true, will return false w/o depleting ammo, if not enough remains.
+     - ammoUse: How much ammo to deplete. Defaults to AmmoUse[1|2] if < 0.
+    */
+    override bool DepleteAmmo(bool altFire, bool checkEnough = true, int ammoUse = -1)
+    {
+        if (altFire || magazineSize <= 0)
+            return Super.DepleteAmmo(altFire, checkEnough, ammoUse);
+
+        // TODO: Check infinite ammo
+
+        if (checkEnough && !CheckMagazine(false, false, ammoUse))
+            return false;
+
+        ammoCount -= ammoUse < 0 ? ammoUse1 : ammoUse;
+
+        if (bPrimary_Uses_Both)
+            ammo2.amount -= ammoUse2;
+
+        ammoCount = Max(ammoCount, 0);
+
+        if (ammo2)
+            ammo2.amount = Max(ammo2.amount, 0);
+
+        return true;
+    }
+
+
     // Everything below here is just helper functions. I'll document them later.
 
     void AttackLoopTick()
