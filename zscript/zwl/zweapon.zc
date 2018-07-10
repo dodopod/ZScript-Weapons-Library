@@ -85,7 +85,25 @@ class ZWeapon : Weapon
 
         Super.Tick();
 
-        AttackLoopTick();
+        // Advance attack loop
+        if (attackSoundState != ALS_Release)
+        {
+            int ticsSinceStart = gameTic - attackSoundStartTic;
+            bool onBeat = ticsSinceStart % attackLoopTics < 1;
+            if (attackSoundState == ALS_Attack && ticsSinceStart >= attackAttackTics)
+            {
+                // Attack is over
+                owner.A_PlaySound(attackSound, CHAN_Weapon, 1.0, true);
+                attackSoundState = ALS_Sustain;
+                attackSoundStartTic = gameTic;
+            }
+            else if (attackSoundState == ALS_ReadyRelease && onBeat)
+            {
+                // Time to end loop
+                owner.A_PlaySound(attackRelease, CHAN_Weapon);
+                attackSoundState = ALS_Release;
+            }
+        }
     }
 
 
@@ -96,16 +114,39 @@ class ZWeapon : Weapon
         invoker.deficit = 0.0;
 
         ZWL_StopAttackLoop();
+
         invoker.CheckMagazine(true);
 
         // Empty weapon click
-        if (invoker.JustPressed(BT_Attack) && invoker.IsEmpty() || invoker.GetAltAtkState(false)
-                && invoker.JustPressed(BT_AltAttack) && !invoker.CheckAmmo(AltFire, false, true))
+        if (!invoker.CheckMagazine(false) && invoker.JustPressed(BT_Attack)                     // Primary
+                || invoker.GetAltAtkState(false) && !invoker.CheckAmmo(AltFire, false, true)    // Alt
+                && invoker.JustPressed(BT_AltAttack))
             A_PlaySound(invoker.clickSound, CHAN_Auto);
 
-        A_WeaponReady(invoker.ConvertReadyFlags(flags));
+        // Weapon ready flags
+        int wrf = 0;
+        wrf |= flags & ZRF_NoSwitch ? WRF_NoSwitch : 0;
+        wrf |= flags & ZRF_DisableSwitch ? WRF_DisableSwitch : 0;
 
-        return null;
+        wrf |= flags & ZRF_NoPrimary || !invoker.CheckMagazine(false) && !invoker.Default.bAmmo_Optional
+            || !invoker.JustPressed(BT_Attack) ? WRF_NoPrimary : 0;
+
+        wrf |= flags & ZRF_NoSecondary || !invoker.JustPressed(BT_AltAttack) ? WRF_NoSecondary : 0;
+
+        wrf |= flags & ZRF_NoBob ? WRF_NoBob : 0;
+
+        wrf |= !(flags & ZRF_NoZoom) ? WRF_AllowZoom : 0;
+
+        // WasPressed is because we have to reset the reload button in order for reload cancelling to work.
+        // We have to reset it before allowing reload, or we'll enter reload state before this function runs.
+        wrf |= !(flags & ZRF_NoReload) && !invoker.IsFull(flags & ZRF_ExtraRound)
+            && (invoker.CheckMagazine(false) || !(flags & ZRF_NoPartialReload))
+            && invoker.WasPressed(BT_Reload) ? WRF_AllowReload : 0;
+
+        if (!invoker.CheckMagazine(false) && !(wrf & WRF_NoPrimary))
+            Console.Printf("can fire");
+
+        A_WeaponReady(wrf);
     }
 
 
@@ -116,8 +157,15 @@ class ZWeapon : Weapon
     */
     action void ZWL_ReFire(StateLabel holdState = null, bool fullAuto = true)
     {
-        if (invoker.bAltFire && !invoker.CheckAmmo(AltFire, false, true) || !invoker.bAltFire && invoker.IsEmpty())
+        if (invoker.bAltFire)
+        {
+            if (!invoker.CheckAmmo(AltFire, false, true))
+                ZWL_StopAttackLoop();
+        }
+        else if (!invoker.CheckMagazine(false))
+        {
             ZWL_StopAttackLoop();
+        }
 
         invoker.CheckMagazine(true);
 
@@ -125,8 +173,6 @@ class ZWeapon : Weapon
             A_ReFire(holdState);
         else
             A_CheckReload();
-
-        return null;
     }
 
 
@@ -149,7 +195,7 @@ class ZWeapon : Weapon
     // Jumps if either magazine is empty, or no ammo remains.
     action State ZWL_JumpIfEmpty(StateLabel st)
     {
-        if (invoker.IsEmpty())
+        if (!invoker.CheckMagazine(false))
             return ResolveState(st);
 
         return ResolveState(null);
@@ -392,14 +438,16 @@ class ZWeapon : Weapon
     virtual bool CheckMagazine(bool autoReload, bool requireAmmo = false, int ammoCount = -1)
     {
         if (magazineSize <= 0)
-            return false;
+            return CheckAmmo(PrimaryFire, false, true);  // Magazine is all ammo in inventory
 
         if (!requireAmmo && Default.bAmmo_Optional)
             return true;
 
         if (self.ammoCount < (ammoCount < 0 ? ammoUse1 : ammoCount))
         {
-            if (autoReload && owner && owner.player)
+            bAmmo_Optional = Default.bAmmo_Optional;
+
+            if (autoReload && CheckAmmo(PrimaryFire, false, true) && owner && owner.player)
                 owner.player.GetPSprite(PSP_Weapon).SetState(GetReloadState(true));
 
             return false;
@@ -440,54 +488,7 @@ class ZWeapon : Weapon
     }
 
 
-    // Everything below here is just helper functions. I'll document them later.
-
-    void AttackLoopTick()
-    {
-        if (attackSoundState != ALS_Release)
-        {
-            int ticsSinceStart = gameTic - attackSoundStartTic;
-            bool onBeat = ticsSinceStart % attackLoopTics < 1;
-            if (attackSoundState == ALS_Attack && ticsSinceStart >= attackAttackTics)
-            {
-                // Attack is over
-                owner.A_PlaySound(attackSound, CHAN_Weapon, 1.0, true);
-                attackSoundState = ALS_Sustain;
-                attackSoundStartTic = gameTic;
-            }
-            else if (attackSoundState == ALS_ReadyRelease && onBeat)
-            {
-                // Time to end loop
-                owner.A_PlaySound(attackRelease, CHAN_Weapon);
-                attackSoundState = ALS_Release;
-            }
-        }
-    }
-
-
-    int ConvertReadyFlags(int flags)
-    {
-        int wrf = 0;
-        wrf |= flags & ZRF_NoSwitch ? WRF_NoSwitch : 0;
-        wrf |= flags & ZRF_DisableSwitch ? WRF_DisableSwitch : 0;
-
-        wrf |= flags & ZRF_NoPrimary || IsEmpty() && !Default.bAmmo_Optional
-            || !JustPressed(BT_Attack) ? WRF_NoPrimary : 0;
-
-        wrf |= flags & ZRF_NoSecondary || !JustPressed(BT_AltAttack) ? WRF_NoSecondary : 0;
-
-        wrf |= flags & ZRF_NoBob ? WRF_NoBob : 0;
-
-        wrf |= !(flags & ZRF_NoZoom) ? WRF_AllowZoom : 0;
-
-        // WasPressed is because we have to reset the reload button in order for reload cancelling to work.
-        wrf |= !(flags & ZRF_NoReload) && !IsFull(flags & ZRF_ExtraRound)
-            && (CheckMagazine(false) || !(flags & ZRF_NoPartialReload)) && WasPressed(BT_Reload) ? WRF_AllowReload : 0;
-
-        return wrf;
-    }
-
-    State GetReloadState(bool empty)
+    virtual State GetReloadState(bool empty)
     {
         if (empty && FindState("Reload.Empty"))
             return ResolveState("Reload.Empty");
@@ -495,15 +496,8 @@ class ZWeapon : Weapon
         return ResolveState("Reload");
     }
 
-    bool CanReload()
-    {
-        return magazineSize > 0;
-    }
 
-    bool IsEmpty()
-    {
-        return CanReload() ? ammoCount < ammoUse1 : !CheckAmmo(PrimaryFire, false, true);
-    }
+    // Everything below here is just helper functions. I'll document them later.
 
     bool IsFull(bool extraRound)
     {
@@ -526,13 +520,6 @@ class ZWeapon : Weapon
         }
 
         return false;
-    }
-
-    bool IsDown(int button)
-    {
-        if (!owner || !owner.player) return false;
-
-        return owner.player.cmd.buttons & button;
     }
 
 
