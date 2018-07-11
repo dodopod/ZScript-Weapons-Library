@@ -508,6 +508,85 @@ class ZChaingun : ZWeapon replaces Chaingun
 }
 
 
+class ZRocketLauncher : ZWeapon replaces RocketLauncher
+{
+	Default
+	{
+		Weapon.SelectionOrder 2500;
+		Weapon.AmmoUse 1;
+		Weapon.AmmoGive 2;
+		Weapon.AmmoType "RocketAmmo";
+		+WEAPON.NOAUTOFIRE
+		Inventory.PickupMessage "$GOTLAUNCHER";
+		Tag "$TAG_ROCKETLAUNCHER";
+	}
+	States
+	{
+	Ready:
+		MISG A 1 ZWL_WeaponReady;
+		Loop;
+	Deselect:
+		MISG A 1 A_Lower;
+		Loop;
+	Select:
+		MISG A 1 A_Raise;
+		Loop;
+	Fire:
+		MISG B 8 A_GunFlash;
+		MISG B 12 ZWL_FireProjectile("Rocket", 3);
+		MISG B 0 ZWL_ReFire;
+		Goto Ready;
+	Flash:
+		MISF A 3 Bright A_Light1;
+		MISF B 4 Bright;
+		MISF CD 4 Bright A_Light2;
+		Goto LightDone;
+	Spawn:
+		LAUN A -1;
+		Stop;
+	}
+}
+
+
+class ZPlasmaRifle : ZWeapon replaces PlasmaRifle
+{
+	Default
+	{
+		Weapon.SelectionOrder 100;
+		Weapon.AmmoUse 1;
+		Weapon.AmmoGive 40;
+		Weapon.AmmoType "Cell";
+		Inventory.PickupMessage "$GOTPLASMA";
+		Tag "$TAG_PLASMARIFLE";
+	}
+
+	States
+	{
+	Ready:
+		PLSG A 1 ZWL_WeaponReady;
+		Loop;
+	Deselect:
+		PLSG A 1 A_Lower;
+		Loop;
+	Select:
+		PLSG A 1 A_Raise;
+		Loop;
+	Fire:
+		PLSG AAA 1 ZWL_FireProjectile("PlasmaBall", 2, 625 * rpm, angleOfs: 45, pitchOfs: -45);
+		PLSG B 20 A_ReFire;
+		Goto Ready;
+	Flash:
+		PLSF A 4 Bright A_Light1;
+		Goto LightDone;
+		PLSF B 4 Bright A_Light1;
+		Goto LightDone;
+	Spawn:
+		PLAS A -1;
+		Stop;
+	}
+}
+
+
 class ZWeaponPlayer : DoomPlayer
 {
     Default
@@ -519,5 +598,7 @@ class ZWeaponPlayer : DoomPlayer
         Player.WeaponSlot 2, "ZPistol";
         Player.WeaponSlot 3, "ZShotgun", "ZSuperShotgun";
         Player.WeaponSlot 4, "ZChaingun";
+        Player.WeaponSlot 5, "ZRocketLauncher";
+        Player.WeaponSlot 6, "ZPlasmaRifle";
     }
 }

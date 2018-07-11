@@ -16,7 +16,7 @@ class ZWeapon : Weapon
         ZRF_NoZoom          = 1 << 5,   // Changed from WRF_AllowZoom.
         ZRF_NoReload        = 1 << 6,   // Changed from WRF_AllowReload.
         ZRF_NoPartialReload = 1 << 7,   // Weapon can't reload, until completely empty (like Marathon).
-        ZRF_ExtraRound      = 1 << 8,   // Weapon can reload, even when full.
+        ZRF_ExtraRound      = 1 << 8,   // Weapon can reload when full.
 
         ZRF_NoFire = ZRF_NoPrimary | ZRF_NoSecondary
     }
@@ -25,6 +25,12 @@ class ZWeapon : Weapon
     {
         ZHF_DontUseAmmo = 1 << 0,
         ZHF_NoSound     = 1 << 1
+    }
+
+    enum EFireProjectileFlags
+    {
+        ZPF_DontUseAmmo = 1 << 0,
+        ZPF_NoSound     = 1 << 1
     }
 
     enum EAttackSoundState
@@ -128,10 +134,14 @@ class ZWeapon : Weapon
         wrf |= flags & ZRF_NoSwitch ? WRF_NoSwitch : 0;
         wrf |= flags & ZRF_DisableSwitch ? WRF_DisableSwitch : 0;
 
+        // If a weapon has the NoAutofire flag, it won't fire on the first tic that Attack is pressed.
+        // But, the WF_WeaponReady flag also stays on for more than one tic, so I can use that to detect whether to
+        // allow the weapon to fire.
         wrf |= flags & ZRF_NoPrimary || !invoker.CheckMagazine(false) && !invoker.Default.bAmmo_Optional
-            || !invoker.JustPressed(BT_Attack) ? WRF_NoPrimary : 0;
+            || !invoker.JustPressed(BT_Attack) && !(invoker.weaponFlags & WF_WeaponReady) ? WRF_NoPrimary : 0;
 
-        wrf |= flags & ZRF_NoSecondary || !invoker.JustPressed(BT_AltAttack) ? WRF_NoSecondary : 0;
+        wrf |= flags & ZRF_NoSecondary || !invoker.JustPressed(BT_AltAttack)
+            && !(invoker.weaponFlags & WF_WeaponReadyAlt) ? WRF_NoSecondary : 0;
 
         wrf |= flags & ZRF_NoBob ? WRF_NoBob : 0;
 
@@ -142,9 +152,6 @@ class ZWeapon : Weapon
         wrf |= !(flags & ZRF_NoReload) && !invoker.IsFull(flags & ZRF_ExtraRound)
             && (invoker.CheckMagazine(false) || !(flags & ZRF_NoPartialReload))
             && invoker.WasPressed(BT_Reload) ? WRF_AllowReload : 0;
-
-        if (!invoker.CheckMagazine(false) && !(wrf & WRF_NoPrimary))
-            Console.Printf("can fire");
 
         A_WeaponReady(wrf);
     }
@@ -220,27 +227,27 @@ class ZWeapon : Weapon
         - ZHF_DontUseAmmo: Weapon won't use ammo.
         - ZHF_NoSound: Weapon won't play attack sound.
     */
-    action void ZWL_FireHitscan(double accuracy, int damage, double fireRate = -1.0, int pellets = 1,
-                                double spread = 0.0, double range = 8192.0, Name damageType = 'Normal',
-                                class<Actor> puffType = "ZBulletPuff", class<Actor> tracerType = null,
-                                int tracerFreq = 1, Vector3 offset = (0, 0, 0), int flags = 0)
+    action void ZWL_FireHitscan(double accuracy, int damage, double fireRate = -1, int pellets = 1, double spread = 0,
+                                double range = 8192, Name damageType = 'Normal', class<Actor> puffType = "ZBulletPuff",
+                                class<Actor> tracerType = null, int tracerFreq = 1, Vector3 offset = (0, 0, 0),
+                                int flags = 0)
     {
         int rounds = fireRate > 0 ? invoker.RoundCount(fireRate) : 1;
 
-        if (!(flags & ZHF_NoSound) && rounds > 0)
+        if (rounds > 0)
             ZWL_StartAttackLoop();
 
         FTranslatedLineTarget lineTarget;
         double aimPitch = AimLineAttack(angle, range, lineTarget);
-        double aimAngle = lineTarget.attackAngleFromSource;
+        double aimAngle = lineTarget.lineTarget ? lineTarget.attackAngleFromSource : angle; // TODO: actually use aimAngle
 
         for (int i = 0; i < rounds; ++i)
         {
-            if (!invoker.DepleteAmmo(invoker.bAltFire))
+            if (!(flags & ZHF_DontUseAmmo) && !invoker.DepleteAmmo(invoker.bAltFire))
                 break;
 
             double shotAngle, shotPitch;
-            [shotAngle, shotPitch] = invoker.BulletAngle(accuracy, angle, aimPitch);
+            [shotAngle, shotPitch] = invoker.BulletAngle(accuracy, aimAngle, aimPitch);
 
             for (int j = 0; j < pellets; ++j)
             {
@@ -259,15 +266,69 @@ class ZWeapon : Weapon
                     }
                     else
                     {
-                        double playerAngle = angle;
-                        angle = pelAngle;
-
+                        double playerPitch = pitch;
+                        pitch = pelPitch;
                         SpawnPlayerMissile(tracerType, pelAngle, offset.x, offset.y, offset.z);
-
-                        angle = playerAngle;
+                        pitch = playerPitch;
                     }
                 }
             }
+        }
+    }
+
+
+    /*
+    Fires one or more projectiles.
+    Params:
+     - missileType: Type of projectile to fire.
+     - accuracy: Random bullet spread, in degrees.
+     - fireRate: Rate of fire in rounds-per-tic. You can convert from rounds-per-minute using the rpm constant.
+     - tracerType: The actor projectile to spawn. This actor faces the bullet puff and travels directly towards it.
+     - tracerFreq: Tracers are only fired once in this many shots.
+     - offset: Offset from which hitscan attacks are fired, relative to player. X is forward, Y is right, Z is up.
+     - angleOfs: Angle at which projectile fires (relative to straight ahead).
+     - pitchOfs: Pitch at which projectile fires (relative to straight ahead).
+     - flags: Customizes behavior.
+        - ZPF_DontUseAmmo: Weapon won't use ammo.
+        - ZPF_NoSound: Weapon won't play attack sound.
+    */
+    action void ZWL_FireProjectile(class<Actor> missileType, double accuracy, double fireRate = -1,
+                                   class<Actor> tracerType = null, int tracerFreq = 1, Vector3 offset = (0, 0, 0),
+                                   double angleOfs = 0, double pitchOfs = 0, int flags = 0)
+    {
+        int rounds = fireRate > 0 ? invoker.RoundCount(fireRate) : 1;
+
+        if (!(flags & ZPF_NoSound) && rounds > 0)
+            ZWL_StartAttackLoop();
+
+        // Rotate base direction by angle and pitch offsets
+        Vector3 baseDirection = (Cos(pitch) * Cos(angle), Cos(pitch) * Sin(angle), -Sin(pitch));
+        Vector3 right = (Cos(angle-90.0), Sin(angle-90.0), 0.0);
+        Vector3 up = (Cos(pitch-90.0) * Cos(angle), Cos(pitch-90.0) * Sin(angle), -Sin(pitch-90.0));
+
+        baseDirection += Sin(angleOfs) * right;
+        baseDirection += Sin(-pitchOfs) * up;
+
+        double baseAngle = VectorAngle(baseDirection.x, baseDirection.y);
+        baseDirection.xy = RotateVector(baseDirection.xy, -baseAngle);
+        double basePitch = -VectorAngle(baseDirection.x, baseDirection.z);
+
+        for (int i = 0; i < rounds; ++i)
+        {
+            if (!(flags & ZPF_DontUseAmmo) && !invoker.DepleteAmmo(invoker.bAltFire))
+                break;
+
+            class<Actor> type = missileType;
+            if (tracerType && (invoker.AmmoLeft(invoker.bAltFire) + i) % tracerFreq == 0)
+                type = tracerType;
+
+            double misAngle, misPitch;
+            [misAngle, misPitch] = invoker.BulletAngle(accuracy, baseAngle, basePitch);
+
+            double playerPitch = pitch;
+            pitch = misPitch;
+            SpawnPlayerMissile(type, misAngle, offset.x, offset.y, offset.z);
+            pitch = playerPitch;
         }
     }
 
@@ -466,7 +527,7 @@ class ZWeapon : Weapon
      - checkEnough: If true, will return false w/o depleting ammo, if not enough remains.
      - ammoUse: How much ammo to deplete. Defaults to AmmoUse[1|2] if < 0.
     */
-    override bool DepleteAmmo(bool altFire, bool checkEnough = true, int ammoUse = -1)
+    override bool DepleteAmmo(bool altFire, bool checkEnough, int ammoUse)
     {
         if (altFire || magazineSize <= 0)
             return Super.DepleteAmmo(altFire, checkEnough, ammoUse);
