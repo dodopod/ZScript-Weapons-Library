@@ -12,6 +12,7 @@ class ZCasing : Actor
         +Missile
         +Dropoff
         +NoBlockMap
+        +MoveWithSector
         +ThruActors
     }
 }
