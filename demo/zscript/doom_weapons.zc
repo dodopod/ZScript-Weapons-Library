@@ -533,7 +533,7 @@ class ZRocketLauncher : ZWeapon replaces RocketLauncher
 		Loop;
 	Fire:
 		MISG B 8 A_GunFlash;
-		MISG B 12 ZWL_FireProjectile("Rocket", 10);
+		MISG B 12 ZWL_FireProjectile("Rocket", 3);
 		MISG B 0 ZWL_ReFire;
 		Goto Ready;
 	Flash:
@@ -572,7 +572,7 @@ class ZPlasmaRifle : ZWeapon replaces PlasmaRifle
 		PLSG A 1 A_Raise;
 		Loop;
 	Fire:
-		PLSG A 3 ZWL_FireProjectile("PlasmaBall", 0);
+		PLSG AAA 1 ZWL_FireProjectile("PlasmaBall", 2, 625 * rpm, angleOfs: 45, pitchOfs: -45);
 		PLSG B 20 A_ReFire;
 		Goto Ready;
 	Flash:

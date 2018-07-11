@@ -280,17 +280,33 @@ class ZWeapon : Weapon
         if (rounds > 0)
             ZWL_StartAttackLoop();
 
+        // Rotate base direction by angle and pitch offsets
+        Vector3 baseDirection = (Cos(pitch) * Cos(angle), Cos(pitch) * Sin(angle), -Sin(pitch));
+        Vector3 right = (Cos(angle-90.0), Sin(angle-90.0), 0.0);
+        Vector3 up = (Cos(pitch-90.0) * Cos(angle), Cos(pitch-90.0) * Sin(angle), -Sin(pitch-90.0));
+
+        baseDirection += Sin(angleOfs) * right;
+        baseDirection += Sin(-pitchOfs) * up;
+
+        double baseAngle = VectorAngle(baseDirection.x, baseDirection.y);
+        baseDirection.xy = RotateVector(baseDirection.xy, -baseAngle);
+        double basePitch = -VectorAngle(baseDirection.x, baseDirection.z);
+
         for (int i = 0; i < rounds; ++i)
         {
             if (!invoker.DepleteAmmo(invoker.bAltFire))
                 break;
 
+            class<Actor> type = missileType;
+            if (tracerType && (invoker.AmmoLeft(invoker.bAltFire) + i) % tracerFreq == 0)
+                type = tracerType;
+
             double misAngle, misPitch;
-            [misAngle, misPitch] = invoker.BulletAngle(accuracy, angle, pitch);
+            [misAngle, misPitch] = invoker.BulletAngle(accuracy, baseAngle, basePitch);
 
             double playerPitch = pitch;
             pitch = misPitch;
-            SpawnPlayerMissile(missileType, misAngle, offset.x, offset.y, offset.z);
+            SpawnPlayerMissile(type, misAngle, offset.x, offset.y, offset.z);
             pitch = playerPitch;
         }
     }
