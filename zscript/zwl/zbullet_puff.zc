@@ -25,6 +25,7 @@ class ZFlatDecal : Actor
 {
     const epsilon = 4;
 
+    bool onCeiling;
     bool randomFlipX,
          randomFlipY;
 
@@ -58,11 +59,18 @@ class ZFlatDecal : Actor
         {
             SetZ(GetZAt());
             plane = curSector.floorPlane;
+            onCeiling = false;
         }
         else if (Abs(pos.z - GetZAt(flags:GZF_Ceiling)) <= epsilon)
         {
             SetZ(GetZAt(flags:GZF_Ceiling));
             plane = curSector.ceilingPlane;
+            onCeiling = true;
+        }
+        else
+        {
+            Destroy();
+            return;
         }
 
         // Tilt to match slopes
@@ -71,6 +79,15 @@ class ZFlatDecal : Actor
 
         normal.xy = RotateVector(normal.xy, -angle);
         pitch = -VectorAngle(normal.x, normal.z) + 90;
+    }
+
+    override void Tick()
+    {
+        Super.Tick();
+
+        // MoveWithSector isn't good enough to stick to a rising ceiling
+        if (onCeiling)
+            SetZ(GetZAt(flags:GZF_Ceiling));
     }
 }
 
