@@ -16,7 +16,7 @@ class ZWeapon : Weapon
         ZRF_NoZoom          = 1 << 5,   // Changed from WRF_AllowZoom.
         ZRF_NoReload        = 1 << 6,   // Changed from WRF_AllowReload.
         ZRF_NoPartialReload = 1 << 7,   // Weapon can't reload, until completely empty (like Marathon).
-        ZRF_ExtraRound      = 1 << 8,   // Weapon can reload, even when full.
+        ZRF_ExtraRound      = 1 << 8,   // Weapon can reload when full.
 
         ZRF_NoFire = ZRF_NoPrimary | ZRF_NoSecondary
     }
@@ -25,6 +25,12 @@ class ZWeapon : Weapon
     {
         ZHF_DontUseAmmo = 1 << 0,
         ZHF_NoSound     = 1 << 1
+    }
+
+    enum EFireProjectileFlags
+    {
+        ZPF_DontUseAmmo = 1 << 0,
+        ZPF_NoSound     = 1 << 1
     }
 
     enum EAttackSoundState
@@ -228,7 +234,7 @@ class ZWeapon : Weapon
     {
         int rounds = fireRate > 0 ? invoker.RoundCount(fireRate) : 1;
 
-        if (!(flags & ZHF_NoSound) && rounds > 0)
+        if (rounds > 0)
             ZWL_StartAttackLoop();
 
         FTranslatedLineTarget lineTarget;
@@ -237,7 +243,7 @@ class ZWeapon : Weapon
 
         for (int i = 0; i < rounds; ++i)
         {
-            if (!invoker.DepleteAmmo(invoker.bAltFire))
+            if (!(flags & ZHF_DontUseAmmo) && !invoker.DepleteAmmo(invoker.bAltFire))
                 break;
 
             double shotAngle, shotPitch;
@@ -271,13 +277,28 @@ class ZWeapon : Weapon
     }
 
 
+    /*
+    Fires one or more projectiles.
+    Params:
+     - missileType: Type of projectile to fire.
+     - accuracy: Random bullet spread, in degrees.
+     - fireRate: Rate of fire in rounds-per-tic. You can convert from rounds-per-minute using the rpm constant.
+     - tracerType: The actor projectile to spawn. This actor faces the bullet puff and travels directly towards it.
+     - tracerFreq: Tracers are only fired once in this many shots.
+     - offset: Offset from which hitscan attacks are fired, relative to player. X is forward, Y is right, Z is up.
+     - angleOfs: Angle at which projectile fires (relative to straight ahead).
+     - pitchOfs: Pitch at which projectile fires (relative to straight ahead).
+     - flags: Customizes behavior.
+        - ZPF_DontUseAmmo: Weapon won't use ammo.
+        - ZPF_NoSound: Weapon won't play attack sound.
+    */
     action void ZWL_FireProjectile(class<Actor> missileType, double accuracy, double fireRate = -1,
                                    class<Actor> tracerType = null, int tracerFreq = 1, Vector3 offset = (0, 0, 0),
                                    double angleOfs = 0, double pitchOfs = 0, int flags = 0)
     {
         int rounds = fireRate > 0 ? invoker.RoundCount(fireRate) : 1;
 
-        if (rounds > 0)
+        if (!(flags & ZPF_NoSound) && rounds > 0)
             ZWL_StartAttackLoop();
 
         // Rotate base direction by angle and pitch offsets
@@ -294,7 +315,7 @@ class ZWeapon : Weapon
 
         for (int i = 0; i < rounds; ++i)
         {
-            if (!invoker.DepleteAmmo(invoker.bAltFire))
+            if (!(flags & ZPF_DontUseAmmo) && !invoker.DepleteAmmo(invoker.bAltFire))
                 break;
 
             class<Actor> type = missileType;
