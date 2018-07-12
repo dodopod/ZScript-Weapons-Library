@@ -36,9 +36,52 @@ class ZBullet : FastProjectile
 
     override void Tick()
     {
+        Super.Tick();
+
         vel *= airFriction;
         if (!bNoGravity)
             vel.z -= gravity * curSector.gravity;
+    }
+}
+
+
+class ZTracer : ZBullet
+{
+    int sparkCount;
+    Color sparkColor;
+    double sparkSize;
+    double sparkAlpha;
+
+    Property SparkCount : sparkCount;
+    Property SparkColor : sparkColor;
+    Property SparkSize : sparkSize;
+    Property SparkAlpha : sparkAlpha;
+
+    Default
+    {
+        ZTracer.SparkCount 32;
+        ZTracer.SparkColor 0xffcc00;
+        ZTracer.SparkSize 1;
+        ZTracer.SparkAlpha 0.85;
+    }
+
+    override void Tick()
+    {
+        if (vel.Length() > 0)
+        {
+            for (int i = 0; i < sparkCount; ++i)
+            {
+                double t = FRandom(0, 360);
+                Vector3 ofs = (0, 0, FRandom(-1, 1));
+                ofs.x = Sqrt(1-ofs.z*ofs.z) * Cos(t);
+                ofs.y = Sqrt(1-ofs.z*ofs.z) * Sin(t);
+                ofs *= 0.1;
+                ofs += FRandom(-1, 0) * vel;
+
+                A_SpawnParticle(sparkColor, SPF_FullBright, 1, sparkSize, 0, ofs.x, ofs.y, ofs.z,
+                                0, 0, 0, 0, 0, 0, sparkAlpha);
+            }
+        }
 
         Super.Tick();
     }
