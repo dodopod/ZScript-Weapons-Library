@@ -1,0 +1,6 @@
+PointLight TracerGlow
+{
+    Color 1.0 0.75 0.0
+    Size 48
+    Offset 0 0 0
+}

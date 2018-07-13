@@ -1,4 +1,5 @@
 /*
+    This is a modified version of Belmondo's tracer script.
 
 	TRACER SYSTEM FOR ZSCRIPT 2.4 | APRIL 7TH 2017
 	AUTHOR: (DENIS) BELMONDO
@@ -15,15 +16,9 @@ class ZTracer : ZBullet
 {
 
 	const TRACERDURATION	= 1; // tics
-	const TRACERFANCY		= 0; // fake bool
 	const TRACERLENGTH		= 96.0; // float
 	const TRACERSCALE		= 4.0; // float
-	const TRACERSTEP		= 0.01; // float
-	const TRACERFANCYSTEP	= 0.01; // float
-	const TRACERACTOR		= "ZTracerTrail"; // actor name
-
-	float x1, y1, z1;
-	float x2, y2, z2;
+	const TRACERSTEP		= 0.5; // float
 
 	// intentional briticism to avoid conflicts with "color" keyword.
 	static const color colours[] = {
@@ -36,21 +31,16 @@ class ZTracer : ZBullet
 					than the others. */
 	};
 
+    States
+    {
+    Spawn:
+        TNT1 A 1 Light("TracerGlow");
+        Loop;
+    }
+
 	// literally just stole this from wikipedia
 	float lerp(float v0, float v1, float t) {
 		return (1 - t) * v0 + t * v1;
-	}
-
-	override void BeginPlay()
-	{
-		// we don't want to lerp into weird coordinates
-		x1 = pos.x;
-		y1 = pos.y;
-		z1 = pos.z;
-
-		x2 = pos.x;
-		y2 = pos.y;
-		z2 = pos.z;
 	}
 
 	override void Tick()
@@ -58,79 +48,27 @@ class ZTracer : ZBullet
 
 		if (level.frozen || globalfreeze) return;
 
-		x1 = pos.x;
-		y1 = pos.y;
-		z1 = pos.z;
+        let oldPos = pos - vel;
 
-		x2 = pos.x + vel.x / GetDefaultSpeed("ZTracer") * TRACERLENGTH;
-		y2 = pos.y + vel.y / GetDefaultSpeed("ZTracer") * TRACERLENGTH;
-		z2 = pos.z + vel.z / GetDefaultSpeed("ZTracer") * TRACERLENGTH;
+        for (double i = 0; i < vel.Length(); i += TRACERSTEP)
+        {
+            double t = i / vel.Length();
 
-		if (TRACERFANCY == 0)
-		{
-			for(float i = 0; i < 1; i += TRACERSTEP) {
-				A_SpawnParticle (
-					colours[clamp(i * colours.Size(), 0, colours.Size() - 1)],
-					SPF_FULLBRIGHT,
-					TRACERDURATION,
-					TRACERSCALE * i,
-					0,
-					(-pos.x) + lerp(x1, x2, i),
-					(-pos.y) + lerp(y1, y2, i),
-					(-pos.z) + lerp(z1, z2, i),
-					0, 0, 0,
-					0, 0, 0,
-					1.0
-				);
-			}
-		}
-		else
-		{
-			for(float i = 0; i < 1; i += TRACERFANCYSTEP) {
-				A_SpawnItemEx (
-					TRACERACTOR,
-					(-pos.x) + lerp(x1, x2, i),
-					(-pos.y) + lerp(y1, y2, i),
-					(-pos.z) + lerp(z1, z2, i),
-					0, 0, 0, 0,
-					SXF_ABSOLUTEPOSITION
-				);
-			}
-		}
+            A_SpawnParticle (
+                colours[clamp(t * colours.Size(), 0, colours.Size() - 1)],
+                SPF_FULLBRIGHT,
+                TRACERDURATION,
+                TRACERSCALE * t,
+                0,
+                Lerp(-vel.x, 0, t),
+                Lerp(-vel.y, 0, t),
+                Lerp(-vel.z, 0, t),
+                vel.x, vel.y, vel.z,
+                0, 0, 0,
+                1.0
+            );
+        }
 
 		Super.Tick();
-	}
-
-}
-
-extend class ZTracer
-{
-	Default {
-		DamageFunction (3 * Random(1, 5));
-		Height 1;
-		Radius 1;
-		Speed 60;
-		+BLOODSPLATTER;
-	}
-	States {
-		Spawn:
-			TNT1 A 1;
-			Loop;
-	}
-}
-
-class ZTracerTrail : Actor
-{
-	Default {
-		Alpha 0.5;
-		RenderStyle "Add";
-		Scale 0.25;
-		+NOINTERACTION;
-	}
-	States {
-		Spawn:
-			PUFF A 2 Bright;
-			TNT1 A -1 A_Jump(256, "Null");
-			Stop;
 	}
 }
