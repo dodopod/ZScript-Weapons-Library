@@ -98,6 +98,8 @@ class PistolBullet : ZTracer
     {
         Speed 381 * mps;
         DamageFunction 5 * Random(1, 3);
+        +NoGravity
+        ZBullet.AirFriction 1;
     }
 
     States
