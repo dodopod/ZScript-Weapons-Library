@@ -16,20 +16,25 @@ class ZTracer : ZBullet
 {
 
 	const TRACERDURATION	= 1; // tics
-	const TRACERLENGTH		= 96.0; // float
-	const TRACERSCALE		= 4.0; // float
-	const TRACERSTEP		= 0.5; // float
 
-	// intentional briticism to avoid conflicts with "color" keyword.
-	static const color colours[] = {
-		"9b 5b 13",
-		"af 7b 1f",
-		"c3 9b 2f",
-		"d7 bb 43",
-		"ff ff 73",
-		"ff ff 73" /* appears twice so a segment of this color is longer
-					than the others. */
-	};
+    double tailLength;
+    double particleScale;
+    double particleSpacing;
+    Color headColor, tailColor;
+
+    Property TailLength : tailLength;
+    Property ParticleScale : particleScale;
+    Property ParticleSpacing : particleSpacing;
+    Property Colors : headColor, tailColor;
+
+
+    Default
+    {
+        ZTracer.TailLength 1.0;
+        ZTracer.ParticleScale 4.0;
+        ZTracer.ParticleSpacing 1.0;
+        ZTracer.Colors 0xffff73, 0x9b5b13;
+    }
 
     States
     {
@@ -38,31 +43,34 @@ class ZTracer : ZBullet
         Loop;
     }
 
-	// literally just stole this from wikipedia
-	float lerp(float v0, float v1, float t) {
-		return (1 - t) * v0 + t * v1;
-	}
 
 	override void Tick()
 	{
 
 		if (level.frozen || globalfreeze) return;
 
-        let oldPos = pos - vel;
-
-        for (double i = 0; i < vel.Length(); i += TRACERSTEP)
+        for (double i = 0; i < vel.Length(); i += particleSpacing / tailLength)
         {
             double t = i / vel.Length();
 
+            // As long as we have a lerp function, we may as well lerp the color, too
+            Color col;
+            if (1.25 * t < 1.0)
+                col = int(Lerp(tailColor.r, headColor.r, 1.25 * t)) << 16
+                    | int(Lerp(tailColor.g, headColor.g, 1.25 * t)) << 8
+                    | int(Lerp(tailColor.b, headColor.b, 1.25 * t));
+            else
+                col = headColor;
+
             A_SpawnParticle (
-                colours[clamp(t * colours.Size(), 0, colours.Size() - 1)],
+                col,
                 SPF_FULLBRIGHT,
                 TRACERDURATION,
-                TRACERSCALE * t,
+                particleScale * t,
                 0,
-                Lerp(-vel.x, 0, t),
-                Lerp(-vel.y, 0, t),
-                Lerp(-vel.z, 0, t),
+                Lerp(-tailLength * vel.x, 0, t),
+                Lerp(-tailLength * vel.y, 0, t),
+                Lerp(-tailLength * vel.z, 0, t),
                 vel.x, vel.y, vel.z,
                 0, 0, 0,
                 1.0
@@ -70,5 +78,10 @@ class ZTracer : ZBullet
         }
 
 		Super.Tick();
+	}
+
+	// literally just stole this from wikipedia
+	float lerp(float v0, float v1, float t) {
+		return (1 - t) * v0 + t * v1;
 	}
 }
