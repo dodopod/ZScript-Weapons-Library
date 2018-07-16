@@ -563,6 +563,18 @@ class ZWeapon : Weapon
     }
 
 
+    override void AttachToOwner (Actor other)
+    {
+        Super.AttachToOwner(other);
+
+        /*if (magazineSize > 0)
+        {
+            ammo1.amount -= ammoGive1;
+            ammoCount += ammoGive1;
+        }*/
+    }
+
+
     virtual State GetReloadState()
     {
         return ResolveState("Reload");
