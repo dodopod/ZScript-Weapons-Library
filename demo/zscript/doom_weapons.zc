@@ -494,7 +494,7 @@ class ZPlasmaRifle : ZWeapon replaces PlasmaRifle
 		PLSG A 1 A_Raise;
 		Loop;
 	Fire:
-		PLSG AAA 1 ZWL_FireProjectile("PlasmaBall", 2, 625 * rpm, angleOfs: 45, pitchOfs: -45);
+		PLSG AAA 1 ZWL_FireProjectile("PlasmaBall", 2, 625 * rpm, flags:ZPF_AddPlayerVel);
 		PLSG B 20 A_ReFire;
 		Goto Ready;
 	Flash:
