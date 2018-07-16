@@ -110,9 +110,9 @@ class ZPistol : ZWeapon replaces Pistol
 		Weapon.SelectionOrder 1900;
 		Weapon.AmmoUse1 1;
 		Weapon.AmmoType1 "Clip";
+        Weapon.AmmoGive 8;
 
         ZWeapon.MagazineSize 7;
-        ZWeapon.AmmoCount 8;
         ZWeapon.ReloadSound "misc/w_pkup";
         ZWeapon.ClickSound "weapons/emptyClick";
 
@@ -188,9 +188,9 @@ class ZShotgun : ZWeapon replaces Shotgun
 		Weapon.SelectionOrder 1300;
 		Weapon.AmmoUse 1;
 		Weapon.AmmoType "Shell";
+        Weapon.AmmoGive 8;
 
         ZWeapon.MagazineSize 7;
-        ZWeapon.AmmoCount 8;
         ZWeapon.ReloadSound "weapons/shellLoad";
         ZWeapon.ClickSound "weapons/emptyClick";
 
