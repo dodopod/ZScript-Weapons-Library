@@ -92,39 +92,13 @@ class ChaingunLink : ZCasing
     }
 }
 
-class PistolBullet : ZTracer
+class ChaingunTracer : ZTracer
 {
     Default
     {
-        Speed 381 * mps;
-        DamageFunction 5 * Random(1, 3);
-    }
-}
-
-class Tracer : FastProjectile
-{
-    Default
-    {
-        Projectile;
-        Radius 1;
-        Height 1;
-        Speed 150;
-
-        Scale 0.125;
-        RenderStyle "Add";
-        Alpha 0.85;
-
-        +ForceXYBillboard
-    }
-
-    States
-    {
-        Spawn:
-            TRAC A 1 Bright;
-            Loop;
-        Death:
-            TNT1 A 1;
-            Stop;
+        Speed 100 * mps;
+        ZBullet.AirFriction 1;
+        +NoGravity
     }
 }
 
@@ -165,7 +139,7 @@ class ZPistol : ZWeapon replaces Pistol
 	Fire:
 		PKPF A 2 Bright
         {
-            ZWL_FireProjectile("PistolBullet", 3);
+            ZWL_FireHitscan(3, 5 * Random(1, 3));
             A_Light(1);
         }
 		PKPI B 2
@@ -181,9 +155,10 @@ class ZPistol : ZWeapon replaces Pistol
     Fire.Empty:
         PKPE ABCD 2;
         PKPE E 8;
-        PKPE E 1 ZWL_ReFire(null, false);
-        Goto Ready;
+        TNT1 A 0 ZWL_CheckReload();
+        Goto Reload.Empty;
     Reload:
+        TNT1 A 0 ZWL_JumpIfEmpty("Reload.Empty");
         PKR2 ABCDE 2;
         PKR2 F 2 ZWL_EjectCasing("PistolEmptyMag", true, 45, 2, 16, (24, 0, -24));
         PKR2 GHI 2;
@@ -249,13 +224,14 @@ class ZShotgun : ZWeapon replaces Shotgun
         }
 		SHTF B 2 A_Light(0);
 		SHTF CDEF 2;
-        SHTG B 2 ZWL_JumpIfEmpty("Ready");
+        SHTG B 2 ZWL_CheckReload();
         SHTG CDEFG 2;
         SHTG H 2 ZWL_EjectCasing("ShotgunCasing");
         SHTG IJIHGFEDCB 2;
         Goto Ready;
 
     Reload:
+        TNT1 A 0 ZWL_JumpIfEmpty("Reload.Empty");
         SHTG BCDEFG 2;
         // Fallthrough
     Reload.Loop:
@@ -291,69 +267,6 @@ class ZShotgun : ZWeapon replaces Shotgun
 
 	Spawn:
 		SHOT A -1;
-		Stop;
-	}
-}
-
-
-class ZSuperShotgun : ZWeapon replaces SuperShotgun
-{
-	Default
-	{
-		Weapon.SelectionOrder 400;
-		Weapon.AmmoUse 2;
-		Weapon.AmmoType "Shell";
-
-		ZWeapon.AmmoCount 2;
-        ZWeapon.MagazineSize 2;
-        ZWeapon.ReloadSound "weapons/sshotl";
-        ZWeapon.ClickSound "weapons/emptyClick";
-
-		Inventory.PickupMessage "$GOTSHOTGUN2";
-		Obituary "$OB_MPSSHOTGUN";
-		Tag "$TAG_SUPERSHOTGUN";
-
-        AttackSound "weapons/sshotf";
-	}
-	States
-	{
-	Ready:
-		SHT2 A 1 ZWL_WeaponReady;
-		Loop;
-	Deselect:
-		SHT2 A 1 A_Lower;
-		Loop;
-	Select:
-		SHT2 A 1 A_Raise;
-		Loop;
-	Fire:
-		SHT2 A 7
-        {
-            ZWL_FireHitscan(3, 5 * Random(1, 3), pellets:14, spread:8);
-            A_GunFlash();
-        }
-		SHT2 B 7;
-		SHT2 C 7;
-        SHT2 B 7 ZWL_JumpIfEmpty("Ready");
-        Goto Ready;
-    Reload:
-		SHT2 D 7
-        {
-            A_PlaySound("weapons/sshoto", CHAN_Weapon);
-            ZWL_EjectCasing("ShotgunCasing", offset:(24, -2, -16));
-            ZWL_EjectCasing("ShotgunCasing", true, offset:(24, -2, -16));
-        }
-		SHT2 E 7;
-		SHT2 F 7 ZWL_Reload;
-		SHT2 G 6;
-		SHT2 H 6 A_PlaySound("weapons/sshotc", CHAN_Weapon);
-		Goto Ready;
-	Flash:
-		SHT2 I 4 Bright A_Light1;
-		SHT2 J 3 Bright A_Light2;
-		Goto LightDone;
-	Spawn:
-		SGN2 A -1;
 		Stop;
 	}
 }
@@ -410,7 +323,7 @@ class ZChaingun : ZWeapon replaces Chaingun
         CHAF A 1 Bright
         {
             A_PlaySound("weapons/minigunSpin", CHAN_Body, looping:true);
-            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"Tracer", tracerFreq:9);
+            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"ChaingunTracer", tracerFreq:9);
             ZWL_EjectCasing("ChaingunCasing", true, -23, 8, 16, (24, 0, -16));
             ZWL_EjectCasing("ChaingunLink", true, -23, 8, 16, (24, 0, -16));
             A_Light(2);
@@ -420,7 +333,7 @@ class ZChaingun : ZWeapon replaces Chaingun
     Hold2:
         CHAF B 1
         {
-            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"Tracer", tracerFreq:9);
+            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"ChaingunTracer", tracerFreq:9);
             ZWL_EjectCasing("ChaingunCasing", true, -23, 8, 16, (24, 0, -16));
             ZWL_EjectCasing("ChaingunLink", true, -23, 8, 16, (24, 0, -16));
             A_Light(1);
@@ -430,7 +343,7 @@ class ZChaingun : ZWeapon replaces Chaingun
     Hold3:
         CHAF C 1
         {
-            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"Tracer", tracerFreq:9);
+            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"ChaingunTracer", tracerFreq:9);
             ZWL_EjectCasing("ChaingunCasing", true, -23, 8, 16, (24, 0, -16));
             ZWL_EjectCasing("ChaingunLink", true, -23, 8, 16, (24, 0, -16));
             A_Light(0);
@@ -440,7 +353,7 @@ class ZChaingun : ZWeapon replaces Chaingun
     Hold4:
         CHAF D 1 Bright
         {
-            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"Tracer", tracerFreq:9);
+            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"ChaingunTracer", tracerFreq:9);
             ZWL_EjectCasing("ChaingunCasing", true, -23, 8, 16, (24, 0, -16));
             ZWL_EjectCasing("ChaingunLink", true, -23, 8, 16, (24, 0, -16));
             A_Light(2);
@@ -450,7 +363,7 @@ class ZChaingun : ZWeapon replaces Chaingun
     Hold5:
         CHAF E 1
         {
-            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"Tracer", tracerFreq:9);
+            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"ChaingunTracer", tracerFreq:9);
             ZWL_EjectCasing("ChaingunCasing", true, -23, 8, 16, (24, 0, -16));
             ZWL_EjectCasing("ChaingunLink", true, -23, 8, 16, (24, 0, -16));
             A_Light(1);
@@ -460,7 +373,7 @@ class ZChaingun : ZWeapon replaces Chaingun
     Hold6:
         CHAF F 1
         {
-            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"Tracer", tracerFreq:9);
+            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"ChaingunTracer", tracerFreq:9);
             ZWL_EjectCasing("ChaingunCasing", true, -23, 8, 16, (24, 0, -16));
             ZWL_EjectCasing("ChaingunLink", true, -23, 8, 16, (24, 0, -16));
             A_Light(0);
@@ -470,7 +383,7 @@ class ZChaingun : ZWeapon replaces Chaingun
     Hold7:
         CHAF G 1 Bright
         {
-            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"Tracer", tracerFreq:9);
+            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"ChaingunTracer", tracerFreq:9);
             ZWL_EjectCasing("ChaingunCasing", true, -23, 8, 16, (24, 0, -16));
             ZWL_EjectCasing("ChaingunLink", true, -23, 8, 16, (24, 0, -16));
             A_Light(2);
@@ -480,7 +393,7 @@ class ZChaingun : ZWeapon replaces Chaingun
     Hold8:
         CHAF H 1
         {
-            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"Tracer", tracerFreq:9);
+            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"ChaingunTracer", tracerFreq:9);
             ZWL_EjectCasing("ChaingunCasing", true, -23, 8, 16, (24, 0, -16));
             ZWL_EjectCasing("ChaingunLink", true, -23, 8, 16, (24, 0, -16));
             A_Light(1);
@@ -490,7 +403,7 @@ class ZChaingun : ZWeapon replaces Chaingun
     Hold9:
         CHAF I 1
         {
-            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"Tracer", tracerFreq:9);
+            ZWL_FireHitscan(2, 5 * Random(1, 3), fireRate:3000*rpm, tracerType:"ChaingunTracer", tracerFreq:9);
             ZWL_EjectCasing("ChaingunCasing", true, -23, 8, 16, (24, 0, -16));
             ZWL_EjectCasing("ChaingunLink", true, -23, 8, 16, (24, 0, -16));
             A_Light(0);

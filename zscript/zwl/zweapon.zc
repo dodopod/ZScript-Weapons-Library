@@ -209,6 +209,14 @@ class ZWeapon : Weapon
     }
 
 
+    // Auto-reloads weapon, if empty. Auto-switches if player has no ammo left.
+    action void ZWL_CheckReload(bool autoReload = true, bool autoSwitch = true)
+    {
+        invoker.CheckMagazine(autoReload);
+        invoker.CheckAmmo(invoker.bAltFire ? AltFire : PrimaryFire, autoSwitch);
+    }
+
+
     /*
     Fires one or more hitscan shots.
     Params:
@@ -258,7 +266,7 @@ class ZWeapon : Weapon
                 puff = LineAttack(pelAngle, range, pelPitch, damage, damageType, puffType, LAF_NoRandomPuffZ,
                                   offsetZ: offset.z, offsetForward: offset.x, offsetSide: offset.y);
 
-                if (tracerType && (invoker.AmmoLeft(invoker.bAltFire) + i) % tracerFreq == 0)
+                if (tracerType && invoker.AmmoLeft(invoker.bAltFire) % tracerFreq == 0)
                 {
                     if (puff)
                     {
@@ -319,7 +327,7 @@ class ZWeapon : Weapon
                 break;
 
             class<Actor> type = missileType;
-            if (tracerType && (invoker.AmmoLeft(invoker.bAltFire) + i) % tracerFreq == 0)
+            if (tracerType && invoker.AmmoLeft(invoker.bAltFire) % tracerFreq == 0)
                 type = tracerType;
 
             double misAngle, misPitch;
@@ -509,7 +517,7 @@ class ZWeapon : Weapon
             bAmmo_Optional = Default.bAmmo_Optional;
 
             if (autoReload && CheckAmmo(PrimaryFire, false, true) && owner && owner.player)
-                owner.player.GetPSprite(PSP_Weapon).SetState(GetReloadState(true));
+                owner.player.GetPSprite(PSP_Weapon).SetState(GetReloadState());
 
             return false;
         }
@@ -551,11 +559,8 @@ class ZWeapon : Weapon
     }
 
 
-    virtual State GetReloadState(bool empty)
+    virtual State GetReloadState()
     {
-        if (empty && FindState("Reload.Empty"))
-            return ResolveState("Reload.Empty");
-
         return ResolveState("Reload");
     }
 
