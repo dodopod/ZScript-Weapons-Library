@@ -36,10 +36,10 @@ class ZBullet : FastProjectile
 
     override void Tick()
     {
+        Super.Tick();
+
         vel *= airFriction;
         if (!bNoGravity)
             vel.z -= gravity * curSector.gravity;
-
-        Super.Tick();
     }
 }
