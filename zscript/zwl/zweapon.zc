@@ -29,8 +29,9 @@ class ZWeapon : Weapon
 
     enum EFireProjectileFlags
     {
-        ZPF_DontUseAmmo = 1 << 0,
-        ZPF_NoSound     = 1 << 1
+        ZPF_DontUseAmmo     = 1 << 0,
+        ZPF_NoSound         = 1 << 1,
+        ZPF_AddPlayerVel    = 1 << 2
     }
 
     enum EAttackSoundState
@@ -335,8 +336,11 @@ class ZWeapon : Weapon
 
             double playerPitch = pitch;
             pitch = misPitch;
-            SpawnPlayerMissile(type, misAngle, offset.x, offset.y, offset.z);
+            Actor missile = SpawnPlayerMissile(type, misAngle, offset.x, offset.y, offset.z);
             pitch = playerPitch;
+
+            if (flags & ZPF_AddPlayerVel)
+                missile.vel += vel;
         }
     }
 
