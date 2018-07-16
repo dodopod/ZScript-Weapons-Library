@@ -77,43 +77,6 @@ class ZWeapon : Weapon
     Property AttackRelease: attackRelease;
 
 
-    override void BeginPlay()
-    {
-        Super.BeginPlay();
-
-        bAmmo_Optional = magazineSize > 0;
-        attackSoundState = ALS_Release;
-    }
-
-    override void Tick()
-    {
-        if (owner && owner.player && owner.player.readyWeapon == self)
-            pressed |= owner.player.cmd.buttons & ~owner.player.oldbuttons;
-
-        Super.Tick();
-
-        // Advance attack loop
-        if (attackSoundState != ALS_Release)
-        {
-            int ticsSinceStart = gameTic - attackSoundStartTic;
-            bool onBeat = ticsSinceStart % attackLoopTics < 1;
-            if (attackSoundState == ALS_Attack && ticsSinceStart >= attackAttackTics)
-            {
-                // Attack is over
-                owner.A_PlaySound(attackSound, CHAN_Weapon, 1.0, true);
-                attackSoundState = ALS_Sustain;
-                attackSoundStartTic = gameTic;
-            }
-            else if (attackSoundState == ALS_ReadyRelease && onBeat)
-            {
-                // Time to end loop
-                owner.A_PlaySound(attackRelease, CHAN_Weapon);
-                attackSoundState = ALS_Release;
-            }
-        }
-    }
-
-
     // Does the same thing as A_WeaponReady. It has similar flags (see above).
     action void ZWL_WeaponReady(int flags = 0)
     {
@@ -501,34 +464,53 @@ class ZWeapon : Weapon
     }
 
 
-    /*
-    Returns true if weapon has enough ammo in its magazine to fire.
-    Params:
-     - autoReload: Reload weapon if it doesn't have enough ammo.
-     - requireAmmo: If true, overrides Ammo_Optional flag.
-     - ammoCount: How much ammo is required. Defaults to AmmoUse1 if < 0.
-    */
-    virtual bool CheckMagazine(bool autoReload, bool requireAmmo = false, int ammoCount = -1)
+    override void BeginPlay()
     {
-        if (magazineSize <= 0)
-            return CheckAmmo(PrimaryFire, false, true);  // Magazine is all ammo in inventory
+        Super.BeginPlay();
 
-        if (!requireAmmo && Default.bAmmo_Optional)
-            return true;
+        bAmmo_Optional = magazineSize > 0;
+        attackSoundState = ALS_Release;
+    }
 
-        if (self.ammoCount < (ammoCount < 0 ? ammoUse1 : ammoCount))
+    override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+
+        // If player spawns w/ weapon, make sure it's loaded
+        if (owner && magazineSize > 0)
         {
-            bAmmo_Optional = Default.bAmmo_Optional;
-
-            if (autoReload && CheckAmmo(PrimaryFire, false, true) && owner && owner.player)
-                owner.player.GetPSprite(PSP_Weapon).SetState(GetReloadState());
-
-            return false;
+            int tradeAmt = Min(Default.ammoGive1, ammo1.amount);
+            ammo1.amount -= tradeAmt;
+            ammoCount += tradeAmt;
         }
+    }
 
-        bAmmo_Optional = true;
+    override void Tick()
+    {
+        if (owner && owner.player && owner.player.readyWeapon == self)
+            pressed |= owner.player.cmd.buttons & ~owner.player.oldbuttons;
 
-        return true;
+        Super.Tick();
+
+        // Advance attack loop
+        if (attackSoundState != ALS_Release)
+        {
+            int ticsSinceStart = gameTic - attackSoundStartTic;
+            bool onBeat = ticsSinceStart % attackLoopTics < 1;
+            if (attackSoundState == ALS_Attack && ticsSinceStart >= attackAttackTics)
+            {
+                // Attack is over
+                owner.A_PlaySound(attackSound, CHAN_Weapon, 1.0, true);
+                attackSoundState = ALS_Sustain;
+                attackSoundStartTic = gameTic;
+            }
+            else if (attackSoundState == ALS_ReadyRelease && onBeat)
+            {
+                // Time to end loop
+                owner.A_PlaySound(attackRelease, CHAN_Weapon);
+                attackSoundState = ALS_Release;
+            }
+        }
     }
 
 
@@ -567,11 +549,44 @@ class ZWeapon : Weapon
     {
         Super.AttachToOwner(other);
 
-        /*if (magazineSize > 0)
+        // AmmoGive places ammo in magazine
+        if (magazineSize > 0)
         {
-            ammo1.amount -= ammoGive1;
-            ammoCount += ammoGive1;
-        }*/
+            int tradeAmt = Min(ammoGive1, ammo1.amount);
+            ammo1.amount -= tradeAmt;
+            ammoCount += tradeAmt;
+        }
+    }
+
+
+    /*
+    Returns true if weapon has enough ammo in its magazine to fire.
+    Params:
+     - autoReload: Reload weapon if it doesn't have enough ammo.
+     - requireAmmo: If true, overrides Ammo_Optional flag.
+     - ammoCount: How much ammo is required. Defaults to AmmoUse1 if < 0.
+    */
+    virtual bool CheckMagazine(bool autoReload, bool requireAmmo = false, int ammoCount = -1)
+    {
+        if (magazineSize <= 0)
+            return CheckAmmo(PrimaryFire, false, true);  // Magazine is all ammo in inventory
+
+        if (!requireAmmo && Default.bAmmo_Optional)
+            return true;
+
+        if (self.ammoCount < (ammoCount < 0 ? ammoUse1 : ammoCount))
+        {
+            bAmmo_Optional = Default.bAmmo_Optional;
+
+            if (autoReload && CheckAmmo(PrimaryFire, false, true) && owner && owner.player)
+                owner.player.GetPSprite(PSP_Weapon).SetState(GetReloadState());
+
+            return false;
+        }
+
+        bAmmo_Optional = true;
+
+        return true;
     }
 
 
