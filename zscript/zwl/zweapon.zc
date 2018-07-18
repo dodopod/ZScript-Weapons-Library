@@ -60,7 +60,6 @@ class ZWeapon : Weapon
 
 
     Property MagazineSize: magazineSize;                    // # of rounds weapon magazine can hold
-    Property AmmoCount: ammoCount;                          // # of rounds in magazine at spawn
     Property ReloadSound: reloadSound;                      // Sound weapon makes when reloading
     Property ClickSound: clickSound;                        // Sound weapon makes when empty and trigger is pulled
 
