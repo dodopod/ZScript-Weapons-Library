@@ -5,5 +5,5 @@ version "3.2"
 #include "zscript/zwl/zbullet.zc"
 #include "zscript/zwl/zweapon.zc"
 
-#include "zscript/doom_weapons.zc"
-#include "zscript/status_bar.zc"
+#include "zscript/demo/doom_weapons.zc"
+#include "zscript/demo/status_bar.zc"
