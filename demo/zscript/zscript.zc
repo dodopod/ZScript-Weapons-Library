@@ -1,4 +1,0 @@
-version "3.2"
-
-#include "zscript/doom_weapons.zc"
-#include "zscript/status_bar.zc"
