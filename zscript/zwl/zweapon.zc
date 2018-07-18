@@ -109,7 +109,7 @@ class ZWeapon : Weapon
 
         wrf |= flags & ZRF_NoBob ? WRF_NoBob : 0;
 
-        wrf |= !(flags & ZRF_NoZoom) ? WRF_AllowZoom : 0;
+        wrf |= !(flags & ZRF_NoZoom) && invoker.JustPressed(BT_Zoom) ? WRF_AllowZoom : 0;
 
         // WasPressed is because we have to reset the reload button in order for reload cancelling to work.
         // We have to reset it before allowing reload, or we'll enter reload state before this function runs.
@@ -238,9 +238,11 @@ class ZWeapon : Weapon
                     }
                     else
                     {
+                        let xy = RotateVector(offset.xy, angle);
+
                         double playerPitch = pitch;
                         pitch = pelPitch;
-                        SpawnPlayerMissile(tracerType, pelAngle, offset.x, offset.y, offset.z);
+                        SpawnPlayerMissile(tracerType, pelAngle, xy.x, xy.y, offset.z);
                         pitch = playerPitch;
                     }
                 }
@@ -297,12 +299,19 @@ class ZWeapon : Weapon
             double misAngle, misPitch;
             [misAngle, misPitch] = invoker.BulletAngle(accuracy, baseAngle, basePitch);
 
+            // Rotate offset
+            offset.y *= -1;  // The +y axis is to the right, for offsets
+            let xz = RotateVector((offset.x, offset.z), -basePitch);
+            offset.x = xz.x;
+            offset.z = xz.y;
+            offset.xy = RotateVector(offset.xy, baseAngle);
+
             double playerPitch = pitch;
             pitch = misPitch;
             Actor missile = SpawnPlayerMissile(type, misAngle, offset.x, offset.y, offset.z);
             pitch = playerPitch;
 
-            if (flags & ZPF_AddPlayerVel)
+            if (missile && flags & ZPF_AddPlayerVel)
                 missile.vel += vel;
         }
     }

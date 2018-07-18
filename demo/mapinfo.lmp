@@ -3,3 +3,8 @@ GameInfo
     PlayerClasses = "ZWeaponPlayer"
     StatusBarClass = "ZStatusBar"
 }
+
+DoomEdNums
+{
+    1000 = "ZSniperRifle"
+}
