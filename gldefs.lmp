@@ -4,3 +4,10 @@ PointLight TracerGlow
     Size 48
     Offset 0 0 0
 }
+
+PointLight RedTracerGlow
+{
+    Color 1.0 0.0 0.0
+    Size 48
+    Offset 0 0 0
+}
