@@ -231,19 +231,12 @@ class ZWeapon : Weapon
 
                 if (tracerType && invoker.AmmoLeft(invoker.bAltFire) % tracerFreq == 0)
                 {
-                    if (puff)
-                    {
-                        SpawnMissile(puff, tracerType, self);
-                    }
-                    else
-                    {
-                        let xy = RotateVector(offset.xy, angle);
+                    let xy = RotateVector(offset.xy, angle);
 
-                        double playerPitch = pitch;
-                        pitch = pelPitch;
-                        SpawnPlayerMissile(tracerType, pelAngle, xy.x, xy.y, offset.z);
-                        pitch = playerPitch;
-                    }
+                    double playerPitch = pitch;
+                    pitch = pelPitch;
+                    SpawnPlayerMissile(tracerType, pelAngle, xy.x, xy.y, offset.z);
+                    pitch = playerPitch;
                 }
             }
         }
@@ -343,7 +336,7 @@ class ZWeapon : Weapon
 
         // Move to player camera
         offset += pos;
-        offset.z += PlayerPawn(self).viewHeight;
+        offset.z += player.viewHeight;
 
         // Find velocity vector
         Vector3 side = (Cos(angle + (left ? 90 : -90)), Sin(angle + (left ? 90 : -90)), 0);
