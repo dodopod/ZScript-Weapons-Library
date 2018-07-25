@@ -1,0 +1,67 @@
+class ZLaser : Actor
+{
+    bool fullBright;
+    double spacing;
+    double lifetime;
+    Color colour;
+    double fadeStep;
+    double range;
+
+    Property FullBright : fullBright;
+    Property Spacing : spacing;
+    Property Lifetime : lifetime;
+    Property Color : colour;
+    Property Alpha : alpha, fadeStep;
+    Property Range : range;
+
+    Default
+    {
+        +PuffOnActors  // These are a hack to get the end point of a raycast
+        +AlwaysPuff
+
+        Speed 1;  // This is a hack to find the pitch
+
+        ZLaser.FullBright true;
+        ZLaser.Spacing 1;
+        ZLaser.Lifetime 1;
+        ZLaser.Color "red";
+        ZLaser.Alpha 1.0, -1;
+        ZLaser.Range 8192;
+    }
+
+    override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+
+        // Projectiles are fired w/ pitch = 0, but we can find the real pitch from our velocity
+        pitch = -ATan2(vel.z, vel.xy.Length());
+        Actor puff = target.LineAttack(angle, range, pitch, damage, "None", "ZLaser");
+
+        for (double t = 0; t < 1; t += spacing / Distance3d(puff))
+        {
+            A_SpawnParticle (
+                colour,
+                fullBright ? SPF_FULLBRIGHT : 0,
+                lifetime,
+                scale.x,
+                0,
+                Lerp(0, puff.pos.x - pos.x, t),
+                Lerp(0, puff.pos.y - pos.y, t),
+                Lerp(0, puff.pos.z - pos.z, t),
+                0, 0, 0,
+                0, 0, 0,
+                alpha,
+                fadeStep
+            );
+        }
+
+        puff.Destroy();
+        Destroy();
+    }
+
+
+	// literally just stole this from wikipedia
+	float lerp(float v0, float v1, float t) {
+		return (1 - t) * v0 + t * v1;
+	}
+}
