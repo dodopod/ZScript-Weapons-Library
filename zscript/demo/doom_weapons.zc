@@ -649,11 +649,4 @@ class ZWeaponPlayer : DoomPlayer
         Player.WeaponSlot 5, "ZRocketLauncher";
         Player.WeaponSlot 6, "ZPlasmaRifle";
     }
-
-    States
-    {
-    Spawn:
-        SNPP A -1;
-        Stop;
-    }
 }
