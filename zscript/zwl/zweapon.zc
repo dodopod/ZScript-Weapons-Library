@@ -335,8 +335,8 @@ class ZWeapon : Weapon
         offset.xy = RotateVector(offset.xy, angle);
 
         // Move to player camera
-        offset += pos;
-        offset.z += player.viewHeight;
+        offset.xy += pos.xy;
+        offset.z += player.viewZ;
 
         // Find velocity vector
         Vector3 side = (Cos(angle + (left ? 90 : -90)), Sin(angle + (left ? 90 : -90)), 0);
