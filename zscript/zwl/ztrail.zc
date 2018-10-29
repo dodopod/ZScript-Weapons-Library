@@ -7,6 +7,13 @@ class ZTrail : Actor
     }
 
 
+    Default
+    {
+        +NoGravity
+        +NoClip
+    }
+
+
     void DrawSegment(Vector3 aPos, Vector3 bPos, Color aCol, Color bCol, double aSize = 1, double bSize = -1,
                      double aAlpha = 1, double bAlpha = -1, double spacing = 1, int lifetime = TicRate,
                      Vector3 vel = (0, 0, 0), Vector3 accel = (0, 0, 0), double fadeStep = -1, double sizeStep = 0,
@@ -21,7 +28,7 @@ class ZTrail : Actor
             bAlpha = aAlpha;
 
         let dis = bPos - aPos;
-        let step = spacing / dis.Length();
+        let step = dis.Length() > 1 ? spacing / dis.Length() : 1;
         for (double t = 0; t < 1; t += step)
         {
             Color col = int(Lerp(aCol.r, bCol.r, t)) << 16
