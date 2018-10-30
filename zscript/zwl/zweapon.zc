@@ -140,9 +140,14 @@ class ZWeapon : Weapon
         invoker.CheckMagazine(true);
 
         if (fullAuto || invoker.JustPressed(BT_Attack) || invoker.JustPressed(BT_AltAttack))
+        {
             A_ReFire(holdState);
+        }
         else
+        {
             A_CheckReload();
+            player.refire = 0;  // Prevent weapon from going to Hold state next time it fires
+        }
     }
 
 
