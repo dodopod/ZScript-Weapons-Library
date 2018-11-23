@@ -1,0 +1,8 @@
+#include "zscript/zwl/zweapon.zc"
+#include "zscript/zwl/zbullet_puff.zc"
+#include "zscript/zwl/zcasing.zc"
+#include "zscript/zwl/zbullet.zc"
+#include "zscript/zwl/ztrail.zc"
+#include "zscript/zwl/ztracer.zc"
+#include "zscript/zwl/zlaser.zc"
+#include "zscript/zwl/zlightning.zc"
