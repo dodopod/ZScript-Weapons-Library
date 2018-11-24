@@ -1,3 +1,6 @@
 version "3.6"
 
 #include "zscript/zwl/zwl.zc"
+
+#include "zscript/demo/doom_weapons.zc"
+#include "zscript/demo/status_bar.zc"
