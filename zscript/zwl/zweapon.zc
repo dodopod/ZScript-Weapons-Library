@@ -87,8 +87,8 @@ class ZWeapon : Weapon
     Property AttackSustain: attackSound, attackLoopTics;
     Property AttackRelease: attackRelease;
 
-    Property SwaySensitivity: swaySensitivityX, swaySensitivityY;
-    Property SwayRecenter: swayRecenterX, swayRecenterY;
+    Property SwaySensitivity: swaySensitivityX, swaySensitivityY;   // Amount that weapon lags behind view
+    Property SwayRecenter: swayRecenterX, swayRecenterY;            // Pull back towards center (should be in (0, 1))
 
 
     // Does the same thing as A_WeaponReady. It has similar flags (see above).
