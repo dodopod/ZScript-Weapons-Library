@@ -97,9 +97,10 @@ class ZWeapon : Weapon
         wrf |= flags & ZRF_NoSwitch ? WRF_NoSwitch : 0;
         wrf |= flags & ZRF_DisableSwitch ? WRF_DisableSwitch : 0;
 
-        wrf |= flags & ZRF_NoPrimary || !invoker.CheckMagazine(false) && !invoker.Default.bAmmo_Optional ? WRF_NoPrimary : 0;
+        // If NoAutofire
+        wrf |= flags & ZRF_NoPrimary || !invoker.CheckMagazine(false) && !invoker.Default.bAmmo_Optional || !invoker.JustPressed(BT_Attack) && !invoker.bNoAutofire ? WRF_NoPrimary : 0;
 
-        wrf |= flags & ZRF_NoSecondary ? WRF_NoSecondary : 0;
+        wrf |= flags & ZRF_NoSecondary || !invoker.JustPressed(BT_AltAttack) ? WRF_NoSecondary : 0;
 
         wrf |= flags & ZRF_NoBob ? WRF_NoBob : 0;
 
