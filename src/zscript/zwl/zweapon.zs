@@ -112,14 +112,9 @@ class ZWeapon : Weapon
         wrf |= flags & ZRF_NoSwitch ? WRF_NoSwitch : 0;
         wrf |= flags & ZRF_DisableSwitch ? WRF_DisableSwitch : 0;
 
-        // If a weapon has the NoAutofire flag, it won't fire on the first tic that Attack is pressed.
-        // But, the WF_WeaponReady flag also stays on for more than one tic, so I can use that to detect whether to
-        // allow the weapon to fire.
-        wrf |= flags & ZRF_NoPrimary || !invoker.CheckMagazine(false) && !invoker.Default.bAmmo_Optional
-            || !invoker.JustPressed(BT_Attack) && !(invoker.weaponFlags & WF_WeaponReady) ? WRF_NoPrimary : 0;
+        wrf |= flags & ZRF_NoPrimary || !invoker.CheckMagazine(false) && !invoker.Default.bAmmo_Optional ? WRF_NoPrimary : 0;
 
-        wrf |= flags & ZRF_NoSecondary || !invoker.JustPressed(BT_AltAttack)
-            && !(invoker.weaponFlags & WF_WeaponReadyAlt) ? WRF_NoSecondary : 0;
+        wrf |= flags & ZRF_NoSecondary ? WRF_NoSecondary : 0;
 
         wrf |= flags & ZRF_NoBob ? WRF_NoBob : 0;
 
