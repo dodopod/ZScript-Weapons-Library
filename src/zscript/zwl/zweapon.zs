@@ -260,7 +260,7 @@ class ZWeapon : Weapon
     */
     action void ZWL_FireProjectile(class<Actor> missileType, double accuracy, double fireRate = -1,
                                    class<Actor> tracerType = null, int tracerFreq = 1, Vector3 offset = (0, 0, 0),
-                                   double angleOfs = 0, double pitchOfs = 0, int flags = 0)
+                                   double angleOfs = 0, double pitchOfs = 0, double speed = -1, int flags = 0)
     {
         int rounds = fireRate > 0 ? invoker.RoundCount(fireRate) : 1;
 
@@ -302,6 +302,9 @@ class ZWeapon : Weapon
             pitch = misPitch;
             Actor missile = SpawnPlayerMissile(type, misAngle, offset.x, offset.y, offset.z);
             pitch = playerPitch;
+
+            if (speed >= 0)
+                missile.vel = Vel3dFromAngle(speed, misAngle, misPitch);
 
             if (missile && flags & ZPF_AddPlayerVel)
                 missile.vel += vel;
