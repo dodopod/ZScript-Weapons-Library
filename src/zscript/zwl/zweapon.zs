@@ -304,7 +304,7 @@ class ZWeapon : Weapon
             pitch = playerPitch;
 
             if (speed >= 0)
-                missile.vel = Vel3dFromAngle(speed, misAngle, misPitch);
+                missile.Vel3dFromAngle(speed, misAngle, misPitch);
 
             if (missile && flags & ZPF_AddPlayerVel)
                 missile.vel += vel;
