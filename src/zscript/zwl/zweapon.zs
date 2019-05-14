@@ -6,12 +6,6 @@ class ZWeapon : Weapon
     const rpm = 1.0 / (ticRate * 60);
     const rps = 1.0 / ticRate;
 
-    const maxYaw = 32767.0;
-    const maxPitch = 32767.0;
-
-    const pSpriteX = 0;
-    const pSpriteY = 32;
-
     enum EWeaponReadyFlags
     {
         ZRF_NoBob           = 1 << 0,
@@ -54,11 +48,9 @@ class ZWeapon : Weapon
     int pressed;
     int attackSoundState;
     int attackSoundStartTic;
-    Vector2 swayOfs;
 
     int ammoCount;
     int magazineSize;
-
     Sound reloadSound;
     Sound clickSound;
     Sound attackAttack;
@@ -66,10 +58,6 @@ class ZWeapon : Weapon
     double attackAttackTics;
     double attackLoopTics;
 
-    double swaySensitivityX;
-    double swaySensitivityY;
-    double swayRecenterX;
-    double swayRecenterY;
 
     Property MagazineSize: magazineSize;                    // # of rounds weapon magazine can hold
     Property ReloadSound: reloadSound;                      // Sound weapon makes when reloading
@@ -86,9 +74,6 @@ class ZWeapon : Weapon
     Property AttackAttack: attackAttack, attackAttackTics;
     Property AttackSustain: attackSound, attackLoopTics;
     Property AttackRelease: attackRelease;
-
-    Property SwaySensitivity: swaySensitivityX, swaySensitivityY;   // Amount that weapon lags behind view
-    Property SwayRecenter: swayRecenterX, swayRecenterY;            // Pull back towards center (should be in (0, 1))
 
 
     // Does the same thing as A_WeaponReady. It has similar flags (see above).
@@ -503,11 +488,10 @@ class ZWeapon : Weapon
 
     override void Tick()
     {
+        if (owner && owner.player && owner.player.readyWeapon == self)
+            pressed |= owner.player.cmd.buttons & ~owner.player.oldbuttons;
+
         Super.Tick();
-
-        if (!(owner && owner.player && owner.player.readyWeapon == self)) return;
-
-        pressed |= owner.player.cmd.buttons & ~owner.player.oldbuttons;
 
         // Advance attack loop
         if (attackSoundState != ALS_Release)
@@ -528,24 +512,6 @@ class ZWeapon : Weapon
                 attackSoundState = ALS_Release;
             }
         }
-
-        // Weapon sway
-        let psp = owner.player.GetPSprite(PSprite.Weapon);
-        if (!InStateSequence(psp.curState, GetReadyState()))    // Can only sway in Ready state
-        {
-            swayOfs = (pSpriteX, pSpriteY);
-            return;
-        }
-
-        double yaw = owner.GetPlayerInput(MODINPUT_Yaw) / maxYaw;
-        swayOfs.x += swaySensitivityX * yaw;
-        swayOfs.x -= swayRecenterX * (swayOfs.x - pSpriteX);
-        psp.x = swayOfs.x;
-
-        double pitch = owner.GetPlayerInput(MODINPUT_Pitch) / maxPitch;
-        swayOfs.y += swaySensitivityY * pitch;
-        swayOfs.y -= swayRecenterY * (swayOfs.y - pSpriteY);
-        psp.y = swayOfs.y;
     }
 
 
