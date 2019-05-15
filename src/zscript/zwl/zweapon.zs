@@ -48,6 +48,7 @@ class ZWeapon : Weapon
     int pressed;
     int attackSoundState;
     int attackSoundStartTic;
+    int chargeLevel;
 
     int ammoCount;
     int magazineSize;
@@ -57,6 +58,7 @@ class ZWeapon : Weapon
     Sound attackRelease;
     double attackAttackTics;
     double attackLoopTics;
+    int maxCharge;
 
 
     Property MagazineSize: magazineSize;                    // # of rounds weapon magazine can hold
@@ -74,6 +76,8 @@ class ZWeapon : Weapon
     Property AttackAttack: attackAttack, attackAttackTics;
     Property AttackSustain: attackSound, attackLoopTics;
     Property AttackRelease: attackRelease;
+
+    Property MaxCharge: maxCharge;
 
 
     // Does the same thing as A_WeaponReady. It has similar flags (see above).
@@ -308,7 +312,7 @@ class ZWeapon : Weapon
                 missile.Vel3dFromAngle(speed, misAngle, misPitch);
 
             if (damage >= 0)
-                missile.damage = damage;
+                missile.SetDamage(damage);
 
             if (missile && flags & ZPF_AddPlayerVel)
                 missile.vel += vel;
@@ -469,6 +473,20 @@ class ZWeapon : Weapon
     {
         if (invoker.attackSoundState != ALS_Release)
             invoker.attackSoundState = ALS_ReadyRelease;
+    }
+
+    action void ZWL_ResetCharge()
+    {
+        invoker.chargeLevel = 0;
+    }
+
+    action void ZWL_Charge(StateLabel overchargeState = null)
+    {
+        if (++invoker.chargeLevel > invoker.maxCharge)
+        {
+            if (overchargeState) invoker.owner.player.GetPSprite(PSP_Weapon).SetState(ResolveState(overchargeState));
+            else invoker.chargeLevel = invoker.maxCharge;
+        }
     }
 
 
