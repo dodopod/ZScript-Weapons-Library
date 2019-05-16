@@ -71,8 +71,7 @@ class ZTracer : ZBullet
 
     override void OnDestroy()
     {
-        trail.Destroy();
-
+        if (trail) trail.Destroy();
         Super.OnDestroy();
     }
 }
