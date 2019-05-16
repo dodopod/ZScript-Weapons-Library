@@ -58,7 +58,8 @@ class ZGrenade : Actor
             double fragPitch = horizontal ? 0 : FRandom(-90, 90);
             double fragAngle = FRandom(-180, 180);
             let frag = SpawnMissileAngle(fragType, fragAngle, fragPitch);
-            frag.target = target;
+
+            if (frag) frag.target = target;
         }
     }
 }
