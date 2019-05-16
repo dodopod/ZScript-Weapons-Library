@@ -25,7 +25,11 @@ class ZGrenade : Actor
     {
         Super.Tick();
 
-        if (--ttd == 0) SetStateLabel("Death");
+        if (--ttd == 0)
+        {
+            SetStateLabel("Death");
+            A_Scream();
+        }
     }
 
     void ZWL_SetTimer(int tics)
