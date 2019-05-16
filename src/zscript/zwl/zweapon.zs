@@ -48,6 +48,7 @@ class ZWeapon : Weapon
     int pressed;
     int attackSoundState;
     int attackSoundStartTic;
+    int chargeLevel;
 
     int ammoCount;
     int magazineSize;
@@ -57,6 +58,7 @@ class ZWeapon : Weapon
     Sound attackRelease;
     double attackAttackTics;
     double attackLoopTics;
+    int maxCharge;
 
 
     Property MagazineSize: magazineSize;                    // # of rounds weapon magazine can hold
@@ -74,6 +76,8 @@ class ZWeapon : Weapon
     Property AttackAttack: attackAttack, attackAttackTics;
     Property AttackSustain: attackSound, attackLoopTics;
     Property AttackRelease: attackRelease;
+
+    Property MaxCharge: maxCharge;
 
 
     // Does the same thing as A_WeaponReady. It has similar flags (see above).
@@ -97,9 +101,10 @@ class ZWeapon : Weapon
         wrf |= flags & ZRF_NoSwitch ? WRF_NoSwitch : 0;
         wrf |= flags & ZRF_DisableSwitch ? WRF_DisableSwitch : 0;
 
-        wrf |= flags & ZRF_NoPrimary || !invoker.CheckMagazine(false) && !invoker.Default.bAmmo_Optional ? WRF_NoPrimary : 0;
+        // If NoAutofire
+        wrf |= flags & ZRF_NoPrimary || !invoker.CheckMagazine(false) && !invoker.Default.bAmmo_Optional || !invoker.JustPressed(BT_Attack) && !invoker.bNoAutofire ? WRF_NoPrimary : 0;
 
-        wrf |= flags & ZRF_NoSecondary ? WRF_NoSecondary : 0;
+        wrf |= flags & ZRF_NoSecondary || !invoker.JustPressed(BT_AltAttack) ? WRF_NoSecondary : 0;
 
         wrf |= flags & ZRF_NoBob ? WRF_NoBob : 0;
 
@@ -260,7 +265,7 @@ class ZWeapon : Weapon
     */
     action void ZWL_FireProjectile(class<Actor> missileType, double accuracy, double fireRate = -1,
                                    class<Actor> tracerType = null, int tracerFreq = 1, Vector3 offset = (0, 0, 0),
-                                   double angleOfs = 0, double pitchOfs = 0, double speed = -1, int flags = 0)
+                                   double angleOfs = 0, double pitchOfs = 0, double speed = -1, double damage = -1, int flags = 0)
     {
         int rounds = fireRate > 0 ? invoker.RoundCount(fireRate) : 1;
 
@@ -303,11 +308,17 @@ class ZWeapon : Weapon
             Actor missile = SpawnPlayerMissile(type, misAngle, offset.x, offset.y, offset.z);
             pitch = playerPitch;
 
-            if (speed >= 0)
-                missile.vel = Vel3dFromAngle(speed, misAngle, misPitch);
+            if (missile)
+            {
+                if (speed >= 0)
+                    missile.Vel3dFromAngle(speed, misAngle, misPitch);
 
-            if (missile && flags & ZPF_AddPlayerVel)
-                missile.vel += vel;
+                if (damage >= 0)
+                    missile.SetDamage(damage);
+
+                if (missile && flags & ZPF_AddPlayerVel)
+                    missile.vel += vel;
+            }
         }
     }
 
@@ -465,6 +476,20 @@ class ZWeapon : Weapon
     {
         if (invoker.attackSoundState != ALS_Release)
             invoker.attackSoundState = ALS_ReadyRelease;
+    }
+
+    action void ZWL_ResetCharge()
+    {
+        invoker.chargeLevel = 0;
+    }
+
+    action void ZWL_Charge(StateLabel overchargeState = null)
+    {
+        if (++invoker.chargeLevel > invoker.maxCharge)
+        {
+            if (overchargeState) invoker.owner.player.GetPSprite(PSP_Weapon).SetState(ResolveState(overchargeState));
+            else invoker.chargeLevel = invoker.maxCharge;
+        }
     }
 
 
