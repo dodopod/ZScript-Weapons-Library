@@ -9,6 +9,12 @@ class ZGrenade : Actor
         ZXF_NoAlert     = XF_ThrustZ << 1
     }
 
+    enum EShrapnelFlags
+    {
+        ZSF_Horizontal  = 1 << 0,
+        ZSF_NotMissile  = 1 << 1
+    }
+
 
     Default
     {
@@ -39,27 +45,27 @@ class ZGrenade : Actor
     }
 
     void ZWL_HitscanShrapnel(int damage, int fragCount, int range = 8192, Name damageType = 'None',
-                             Class<Actor> puffType = "ZBulletPuff", bool horizontal = false)
+                             Class<Actor> puffType = "ZBulletPuff", int flags = 0)
     {
         for (int i = 0; i < fragCount; ++i)
         {
             // Bad way to generate random angles
-            double fragPitch = horizontal ? 0 : FRandom(-90, 90);
+            double fragPitch = (flags & ZSF_Horizontal) ? 0 : FRandom(-90, 90);
             double fragAngle = FRandom(-180, 180);
             LineAttack(fragAngle, range, fragPitch, damage, damageType, puffType, LAF_NoRandomPuffZ);
         }
     }
 
-    void ZWL_ProjectileShrapnel(Class<Actor> fragType, int fragCount, bool horizontal = false)
+    void ZWL_ProjectileShrapnel(Class<Actor> fragType, int fragCount, int flags = 0)
     {
         for (int i = 0; i < fragCount; ++i)
         {
             // Bad way to generate random angles
-            double fragPitch = horizontal ? 0 : FRandom(-90, 90);
+            double fragPitch = (flags & ZSF_Horizontal) ? 0 : FRandom(-90, 90);
             double fragAngle = FRandom(-180, 180);
             let frag = SpawnMissileAngle(fragType, fragAngle, fragPitch);
 
-            if (frag) frag.target = target;
+            if (frag && !(flags & ZSF_NotMissile)) frag.target = target;
         }
     }
 }
