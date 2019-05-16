@@ -9,7 +9,6 @@ class ZGrenade : Actor
         ZXF_NoAlert     = XF_ThrustZ << 1
     }
 
-    int ttd;
 
     Default
     {
@@ -21,20 +20,11 @@ class ZGrenade : Actor
         +NoBlockMap
     }
 
+
     override void Tick()
     {
         Super.Tick();
-
-        if (--ttd == 0)
-        {
-            SetStateLabel("Death");
-            A_Scream();
-        }
-    }
-
-    void ZWL_SetTimer(int tics)
-    {
-        ttd = tics;
+        if (reactionTime > 0) A_Countdown();
     }
 
     void ZWL_Explode(int damage, int distance, int fullDamageDistance = 0, Name damageType = 'None',
