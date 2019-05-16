@@ -1,4 +1,4 @@
-class ZGrenade : Actor
+class ZExplosive : Actor
 {
     enum EExplosionFlags
     {
@@ -15,6 +15,11 @@ class ZGrenade : Actor
         ZSF_NotMissile  = 1 << 1
     }
 
+    int grenadeFlags;
+
+
+    Flagdef AutoCountdown: grenadeFlags, 0;
+
 
     Default
     {
@@ -30,7 +35,7 @@ class ZGrenade : Actor
     override void Tick()
     {
         Super.Tick();
-        if (reactionTime > 0) A_Countdown();
+        if (bAutoCountdown && reactionTime > 0) A_Countdown();
     }
 
     void ZWL_Explode(int damage, int distance, int fullDamageDistance = 0, Name damageType = 'None',
