@@ -50,7 +50,15 @@ class ZGrenade : Actor
         }
     }
 
-    void ZWL_ProjectileShrapnel(Class<Actor> missileType, int fragCount)
+    void ZWL_ProjectileShrapnel(Class<Actor> fragType, int fragCount, bool horizontal = false)
     {
+        for (int i = 0; i < fragCount; ++i)
+        {
+            // Bad way to generate random angles
+            double fragPitch = horizontal ? 0 : FRandom(-90, 90);
+            double fragAngle = FRandom(-180, 180);
+            let frag = SpawnMissileAngle(fragType, fragAngle, fragPitch);
+            frag.target = target;
+        }
     }
 }
