@@ -38,8 +38,16 @@ class ZGrenade : Actor
         A_Explode(damage, distance, flags, alert, fullDamageDistance, 0, 0, "", damageType);
     }
 
-    void ZWL_HitscanShrapnel(int damage, int fragCount, Name damageType = 'None', Class<Actor> puffType = "BulletPuff")
+    void ZWL_HitscanShrapnel(int damage, int fragCount, int range = 8192, Name damageType = 'None',
+                             Class<Actor> puffType = "ZBulletPuff", bool horizontal = false)
     {
+        for (int i = 0; i < fragCount; ++i)
+        {
+            // Bad way to generate random angles
+            double fragPitch = horizontal ? 0 : FRandom(-90, 90);
+            double fragAngle = FRandom(-180, 180);
+            LineAttack(fragAngle, range, fragPitch, damage, damageType, puffType, LAF_NoRandomPuffZ);
+        }
     }
 
     void ZWL_ProjectileShrapnel(Class<Actor> missileType, int fragCount)
