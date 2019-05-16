@@ -308,14 +308,17 @@ class ZWeapon : Weapon
             Actor missile = SpawnPlayerMissile(type, misAngle, offset.x, offset.y, offset.z);
             pitch = playerPitch;
 
-            if (speed >= 0)
-                missile.Vel3dFromAngle(speed, misAngle, misPitch);
+            if (missile)
+            {
+                if (speed >= 0)
+                    missile.Vel3dFromAngle(speed, misAngle, misPitch);
 
-            if (damage >= 0)
-                missile.SetDamage(damage);
+                if (damage >= 0)
+                    missile.SetDamage(damage);
 
-            if (missile && flags & ZPF_AddPlayerVel)
-                missile.vel += vel;
+                if (missile && flags & ZPF_AddPlayerVel)
+                    missile.vel += vel;
+            }
         }
     }
 
