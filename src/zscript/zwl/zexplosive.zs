@@ -15,20 +15,15 @@ class ZExplosive : Actor
         ZSF_NotMissile  = 1 << 1
     }
 
-    int grenadeFlags;
+    int explosiveFlags;
 
 
-    Flagdef AutoCountdown: grenadeFlags, 0;
+    Flagdef AutoCountdown: explosiveFlags, 0;
 
 
     Default
     {
-        BounceType "Grenade";
-        BounceFactor 0.5;
-        WallBounceFactor 0.5;
-
-        +Dropoff
-        +NoBlockMap
+        Projectile;
     }
 
 
