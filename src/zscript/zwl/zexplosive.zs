@@ -19,6 +19,9 @@ class ZExplosive : Actor
 
 
     Flagdef AutoCountdown: explosiveFlags, 0;
+    Flagdef StickToFloors: explosiveFlags, 1;
+    Flagdef StickToWalls: explosiveFlags, 2;
+    Flagdef StickToCeilings: explosiveFlags, 3;
 
 
     Default
@@ -31,6 +34,7 @@ class ZExplosive : Actor
     {
         Super.Tick();
         if (bAutoCountdown && reactionTime > 0) A_Countdown();
+        if (bStickToFloors && pos.z <= GetZAt()) vel = (0, 0, 0);
     }
 
     void ZWL_Explode(int damage, int distance, int fullDamageDistance = 0, Name damageType = 'None',
