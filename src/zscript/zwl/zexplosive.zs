@@ -33,8 +33,15 @@ class ZExplosive : Actor
     override void Tick()
     {
         Super.Tick();
+
         if (bAutoCountdown && reactionTime > 0) A_Countdown();
+
         if (bStickToFloors && pos.z <= GetZAt()) vel = (0, 0, 0);
+        if (bStickToWalls && CheckBlock(CBF_NoActors, xOfs: vel.xy.Length()))
+        {
+            bNoGravity = true;
+            vel = (0, 0, 0);
+        }
     }
 
     void ZWL_Explode(int damage, int distance, int fullDamageDistance = 0, Name damageType = 'None',
