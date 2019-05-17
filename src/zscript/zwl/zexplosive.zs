@@ -36,7 +36,17 @@ class ZExplosive : Actor
 
         if (bAutoCountdown && reactionTime > 0) A_Countdown();
 
-        if (bStickToFloors && pos.z <= GetZAt()) vel = (0, 0, 0);
+        if (bStickToFloors && pos.z <= GetZAt())
+        {
+            vel = (0, 0, 0);
+        }
+
+        if (bStickToCeilings && pos.z + height + vel.z >= GetZAt(flags: GZF_Ceiling))
+        {
+            bNoGravity = true;
+            vel = (0, 0, 0);
+        }
+
         if (bStickToWalls && CheckBlock(CBF_NoActors, xOfs: vel.xy.Length()))
         {
             bNoGravity = true;
