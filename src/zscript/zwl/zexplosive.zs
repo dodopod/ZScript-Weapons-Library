@@ -21,7 +21,7 @@ class ZExplosive : Actor
     Flagdef AutoCountdown: explosiveFlags, 0;
     Flagdef StickToFloors: explosiveFlags, 1;
     Flagdef StickToWalls: explosiveFlags, 2;
-    Flagdef StickToCeilings: explosiveFlags, 3;
+    Flagdef StickToCeilings: explosiveFlags, 3; // TODO: StickToActors
 
 
     Default
@@ -36,17 +36,19 @@ class ZExplosive : Actor
 
         if (bAutoCountdown && reactionTime > 0) A_Countdown();
 
-        if (bStickToFloors && pos.z <= GetZAt())
+        if (bStickToFloors && pos.z <= GetZAt())    // TODO: Go to stick/stick.floor state
         {
             vel = (0, 0, 0);
         }
 
+        // TODO: Move to ceiling, go to stick/stick.ceiling state
         if (bStickToCeilings && pos.z + height + vel.z >= GetZAt(flags: GZF_Ceiling))
         {
             bNoGravity = true;
             vel = (0, 0, 0);
         }
 
+        // TODO: Move to wall, go to stick/stick.wall state
         if (bStickToWalls && CheckBlock(CBF_NoActors, xOfs: vel.xy.Length()))
         {
             bNoGravity = true;
@@ -90,6 +92,7 @@ class ZExplosive : Actor
         }
     }
 
+    // TODO: absolute flags, offset
     State ZWL_Tripwire(StateLabel st = "Death", double angleOfs = 0, double pitchOfs = 0, int range = 8192)
     {
         FLineTraceData trace;
@@ -104,6 +107,7 @@ class ZExplosive : Actor
         return ResolveState(null);
     }
 
+    // TODO: Friend, enemy flags
     State ZWL_Proximity(int range, StateLabel st = "Death")
     {
         let it = BlockThingsIterator.Create(self, range);
