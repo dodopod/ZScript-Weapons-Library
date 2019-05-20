@@ -15,6 +15,12 @@ class ZExplosive : Actor
         ZSF_NotMissile  = 1 << 1
     }
 
+    enum EProximityFlags
+    {
+        ZPF_DetectEnemies = 1 << 0,
+        ZPF_DetectFriends = 1 << 1
+    }
+
     int explosiveFlags;
 
 
@@ -115,19 +121,23 @@ class ZExplosive : Actor
         return ResolveState(null);
     }
 
-    // TODO: Friend, enemy flags
-    State ZWL_Proximity(int range, StateLabel st = "Death")
+    State ZWL_Proximity(int range, StateLabel st = "Death", int flags = ZPF_DetectEnemies)
     {
-        let realTarget = target;
-        target = null;
-        A_LookEx(LOF_NoSoundCheck | LOF_NoJump, 0, range, 0, 360);
-
-        if (target)
+        let it = BlockThingsIterator.Create(self, range);
+        while (it.Next())
         {
-            A_PlaySound(deathSound);
-            return ResolveState(st);
+
+            if (Distance3D(it.thing) < range && CheckSight(it.thing))
+            {
+                let src = target ? target : Actor(self);
+                if (flags & ZPF_DetectEnemies && src.isHostile(it.thing)
+                    || flags & ZPF_DetectFriends && src.isFriend(it.thing))
+                {
+                    A_PlaySound(deathSound);
+                    return ResolveState(st);
+                }
+            }
         }
-        target = realTarget;
 
         return ResolveState(null);
     }
