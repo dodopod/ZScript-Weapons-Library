@@ -89,4 +89,18 @@ class ZExplosive : Actor
             if (frag && !(flags & ZSF_NotMissile)) frag.target = target;
         }
     }
+
+    State ZWL_Tripwire(StateLabel st = "Death", double angleOfs = 0, double pitchOfs = 0, int range = 8192)
+    {
+        FLineTraceData trace;
+        LineTrace(angle + angleOfs, range, pitch + pitchOfs, data: trace);
+
+        if (trace.hitType == Trace_HitActor)
+        {
+            A_PlaySound(deathSound);
+            return ResolveState(st);
+        }
+
+        return ResolveState(null);
+    }
 }
