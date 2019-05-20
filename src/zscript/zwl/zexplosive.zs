@@ -36,23 +36,31 @@ class ZExplosive : Actor
 
         if (bAutoCountdown && reactionTime > 0) A_Countdown();
 
-        if (bStickToFloors && pos.z <= GetZAt())    // TODO: Go to stick/stick.floor state
+        if (bStickToFloors && blockingFloor)
         {
+            bStickToFloors = false;
+            bMoveWithSector = true;
             vel = (0, 0, 0);
+
+            SetStateLabel("Stick.Floor");
         }
 
-        // TODO: Move to ceiling, go to stick/stick.ceiling state
-        if (bStickToCeilings && pos.z + height + vel.z >= GetZAt(flags: GZF_Ceiling))
+        if (bStickToCeilings && blockingCeiling)
         {
+            bStickToCeilings = false;
             bNoGravity = true;
             vel = (0, 0, 0);
+
+            SetStateLabel("Stick.Ceiling");
         }
 
-        // TODO: Move to wall, go to stick/stick.wall state
-        if (bStickToWalls && CheckBlock(CBF_NoActors, xOfs: vel.xy.Length()))
+        if (bStickToWalls && blockingLine)
         {
+            bStickToWalls = false;
             bNoGravity = true;
             vel = (0, 0, 0);
+
+            SetStateLabel("Stick.Wall");
         }
     }
 
@@ -110,15 +118,16 @@ class ZExplosive : Actor
     // TODO: Friend, enemy flags
     State ZWL_Proximity(int range, StateLabel st = "Death")
     {
-        let it = BlockThingsIterator.Create(self, range);
-        while (it.Next())
+        let realTarget = target;
+        target = null;
+        A_LookEx(LOF_NoSoundCheck | LOF_NoJump, 0, range, 0, 360);
+
+        if (target)
         {
-            if (it.thing.bShootable)
-            {
-                A_PlaySound(deathSound);
-                return ResolveState(st);
-            }
+            A_PlaySound(deathSound);
+            return ResolveState(st);
         }
+        target = realTarget;
 
         return ResolveState(null);
     }
