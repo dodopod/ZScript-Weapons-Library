@@ -103,4 +103,19 @@ class ZExplosive : Actor
 
         return ResolveState(null);
     }
+
+    State ZWL_Proximity(int range, StateLabel st = "Death")
+    {
+        let it = BlockThingsIterator.Create(self, range);
+        while (it.Next())
+        {
+            if (it.thing.bShootable)
+            {
+                A_PlaySound(deathSound);
+                return ResolveState(st);
+            }
+        }
+
+        return ResolveState(null);
+    }
 }
