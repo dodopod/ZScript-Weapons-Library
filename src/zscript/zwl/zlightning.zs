@@ -10,6 +10,7 @@ class ZLightning : ZTrail
 
     Color colour;
     int lifetime;
+    double range;
     double size;
     double spacing;
     int generations;
@@ -22,6 +23,7 @@ class ZLightning : ZTrail
     Property Color : colour;
     Property Alpha : alpha;
     Property Lifetime : lifetime;
+    Property Range : range;
     Property Size : size;
     Property Spacing : spacing;
     Property Generations : generations;
@@ -33,14 +35,12 @@ class ZLightning : ZTrail
 
     Default
     {
-        +PuffOnActors  // These are a hack to get the end point of a raycast
-        +AlwaysPuff
-
         Speed 1;  // This is a hack to find the pitch
 
         ZLightning.Color 0xddddff;
         ZLightning.Alpha 0.8;
         ZLightning.Lifetime 8;
+        ZLightning.Range 8192;
         ZLightning.Size 4;
         ZLightning.Spacing 1;
         ZLightning.Generations 4;
@@ -58,7 +58,9 @@ class ZLightning : ZTrail
         // Find lightning endpoint
         // Projectiles are fired w/ pitch = 0, but we can find the real pitch from our velocity
         pitch = -ATan2(vel.z, vel.xy.Length());
-        Actor puff = target.LineAttack(angle, 8192, pitch, damage, "None", "ZLightning");
+
+        FLineTraceData traceData;
+        target.LineTrace(angle, range, pitch, data: traceData);
 
         // These will be used to offset points along the bolt
         Vector3 right = (Cos(angle-90.0), Sin(angle-90.0), 0.0);
@@ -67,7 +69,7 @@ class ZLightning : ZTrail
         // Create line segment spanning entire lightning bolt
         segs.Push(New("ZLightningSeg"));
         segs[0].aPos = pos;
-        segs[0].bPos = puff.pos;
+        segs[0].bPos = traceData.hitLocation;
         segs[0].size = size;
 
         double rMax = maxOffset;
@@ -121,7 +123,6 @@ class ZLightning : ZTrail
             DrawSegment(segs[i].aPos, segs[i].bPos, colour, colour, segs[i].size, -1, alpha, -1, spacing, lifetime, flags: PF_FullBright);
         }
 
-        puff.Destroy();
         Destroy();
     }
 }

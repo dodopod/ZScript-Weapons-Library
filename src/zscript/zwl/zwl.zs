@@ -2,7 +2,7 @@
 #include "zscript/zwl/zbullet_puff.zs"
 #include "zscript/zwl/zcasing.zs"
 #include "zscript/zwl/zbullet.zs"
-#include "zscript/zwl/zgrenade.zs"
+#include "zscript/zwl/zexplosive.zs"
 #include "zscript/zwl/ztrail.zs"
 #include "zscript/zwl/ztracer.zs"
 #include "zscript/zwl/zlaser.zs"

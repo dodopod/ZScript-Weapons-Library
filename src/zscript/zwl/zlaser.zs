@@ -16,9 +16,6 @@ class ZLaser : ZTrail
 
     Default
     {
-        +PuffOnActors  // These are a hack to get the end point of a raycast
-        +AlwaysPuff
-
         Speed 1;  // This is a hack to find the pitch
 
         ZLaser.Color "red";
@@ -36,12 +33,13 @@ class ZLaser : ZTrail
         // Find beam endpoint
         // Projectiles are fired w/ pitch = 0, but we can find the real pitch from our velocity
         pitch = -ATan2(vel.z, vel.xy.Length());
-        Actor puff = target.LineAttack(angle, range, pitch, damage, "None", "ZLaser");
 
-        DrawSegment(pos, puff.pos, colour, colour, scale.x, -1, alpha, -1, spacing, lifetime, (0, 0, 0), (0, 0, 0),
-                    fadeStep, sizeStep, PF_FullBright);
+        FLineTraceData traceData;
+        target.LineTrace(angle, range, pitch, data: traceData);
 
-        puff.Destroy();
+        DrawSegment(pos, traceData.hitLocation, colour, colour, scale.x, -1, alpha, -1, spacing, lifetime, (0, 0, 0),
+                    (0, 0, 0), fadeStep, sizeStep, PF_FullBright);
+
         Destroy();
     }
 }
