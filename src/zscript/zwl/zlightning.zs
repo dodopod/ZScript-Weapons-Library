@@ -57,10 +57,10 @@ class ZLightning : ZTrail
 
         // Find lightning endpoint
         // Projectiles are fired w/ pitch = 0, but we can find the real pitch from our velocity
-        pitch = -ATan2(vel.z, vel.xy.Length());
+        if (target) pitch = -ATan2(vel.z, vel.xy.Length());
 
         FLineTraceData traceData;
-        target.LineTrace(angle, range, pitch, data: traceData);
+        LineTrace(angle, range, pitch, data: traceData);
 
         // These will be used to offset points along the bolt
         Vector3 right = (Cos(angle-90.0), Sin(angle-90.0), 0.0);
