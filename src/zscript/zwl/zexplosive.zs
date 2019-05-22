@@ -70,8 +70,11 @@ class ZExplosive : Actor
         }
     }
 
-    void ZWL_Explode(int damage, int distance, int fullDamageDistance = 0, Name damageType = 'None',
-                     int flags = ZXF_HurtSource)
+    void ZWL_Explode(int damage,
+        int distance,
+        int fullDamageDistance = 0,
+        Name damageType = 'None',
+        int flags = ZXF_HurtSource)
     {
         bool alert = !(flags & ZXF_NoAlert);
         flags &= ~ZXF_NoAlert;
@@ -81,27 +84,54 @@ class ZExplosive : Actor
         A_Explode(damage, distance, flags, alert, fullDamageDistance, 0, 0, "", damageType);
     }
 
-    void ZWL_HitscanShrapnel(int damage, int fragCount, int range = 8192, Name damageType = 'None',
-                             Class<Actor> puffType = "ZBulletPuff", int flags = 0)
+    void ZWL_HitscanShrapnel(
+        int damage,
+        int fragCount,
+        int spread = 180,
+        int range = 8192,
+        Name damageType = 'None',
+        Class<Actor> puffType = "ZBulletPuff",
+        Vector3 offset = (0, 0, 0),
+        double angleOfs = 0,
+        double pitchOfs = 0,
+        int flags = 0)
     {
         for (int i = 0; i < fragCount; ++i)
         {
-            // Bad way to generate random angles
-            double fragPitch = (flags & ZSF_Horizontal) ? 0 : FRandom(-90, 90);
-            double fragAngle = FRandom(-180, 180);
-            LineAttack(fragAngle, range, fragPitch, damage, damageType, puffType, LAF_NoRandomPuffZ);
+            double fragAngle, fragPitch;
+            [fragAngle, fragPitch] = BulletAngle(spread, angle + angleOfs, pitch + pitchOfs);
+            LineAttack(
+                fragAngle,
+                range,
+                fragPitch,
+                damage,
+                damageType,
+                puffType,
+                LAF_NoRandomPuffZ,
+                null,
+                offset.z,
+                offset.x,
+                offset.y);
         }
     }
 
-    void ZWL_ProjectileShrapnel(Class<Actor> fragType, int fragCount, int flags = 0)
+    void ZWL_ProjectileShrapnel(
+        Class<Actor> fragType,
+        int fragCount,
+        double spread = 180,
+        Vector3 offset = (0, 0, 0),
+        double angleOfs = 0,
+        double pitchOfs = 0,
+        int flags = 0)
     {
         for (int i = 0; i < fragCount; ++i)
         {
-            // Bad way to generate random angles
-            double fragPitch = (flags & ZSF_Horizontal) ? 0 : FRandom(-90, 90);
-            double fragAngle = FRandom(-180, 180);
-            let frag = SpawnMissileAngle(fragType, fragAngle, fragPitch);
+            double fragAngle, fragPitch;
+            [fragAngle, fragPitch] = BulletAngle(spread, angle + angleOfs, pitch + pitchOfs);
 
+            let frag = SpawnMissileAngle(fragType, fragAngle, 0);
+            frag.Vel3dFromAngle(frag.speed, fragAngle, fragPitch);
+            frag.SetOrigin(frag.pos + offset, false);
             if (frag && !(flags & ZSF_NotMissile)) frag.target = target;
         }
     }
@@ -140,5 +170,26 @@ class ZExplosive : Actor
         }
 
         return ResolveState(null);
+    }
+
+
+    double, double BulletAngle(double accuracy, double angle, double pitch)
+    {
+        if (accuracy == 0) return angle, pitch;
+
+        // Generate random vector in sphere section
+        Vector3 axis = (Cos(pitch) * Cos(angle), Cos(pitch) * Sin(angle), -Sin(pitch));
+        Vector3 v;
+        while (v == (0, 0, 0) || v.Length() > 1 || ACos(axis dot v.Unit()) > accuracy)
+        {
+            v = (FRandom(-1, 1), FRandom(-1, 1), FRandom(-1, 1));
+        }
+
+        // Extract angle and pitch from trajectory
+        angle = VectorAngle(v.x, v.y);
+        v.xy = RotateVector(v.xy, -angle);  // Is there a function to find pitch?
+        pitch = -VectorAngle(v.x, v.z);
+
+        return angle, pitch;
     }
 }
