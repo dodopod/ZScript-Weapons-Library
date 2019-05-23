@@ -216,4 +216,3 @@ class ZExplosive : Actor
         return angle, pitch;
     }
 }
-}
