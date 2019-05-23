@@ -707,29 +707,37 @@ class ZWeapon : Weapon
     //  - pitch: pitch of axis
     double, double BulletAngle(double accuracy, double angle, double pitch)
     {
-        // Let there be a cone w/ apex @ origin, axis w/ given angle & pitch, height of 1, and aperture of 2*accuracy
-        Vector3 axis = (Cos(pitch) * Cos(angle), Cos(pitch) * Sin(angle), -Sin(pitch));
+        Vector3 v = (0, 0, 0);
 
-        // Basis vectors for cone's base
-        Vector3 right = (Cos(angle-90.0), Sin(angle-90.0), 0.0);
-        Vector3 up = (Cos(pitch-90.0) * Cos(angle), Cos(pitch-90.0) * Sin(angle), -Sin(pitch-90.0));
+        if (accuracy > 10)
+        {
+            // Generate random vector in sphere section
+            Vector3 axis = (Cos(pitch) * Cos(angle), Cos(pitch) * Sin(angle), -Sin(pitch));
+            while (v == (0, 0, 0) || v.Length() > 1 || ACos(axis dot v.Unit()) > accuracy)
+            {
+                v = (FRandom(-1, 1), FRandom(-1, 1), FRandom(-1, 1));
+            }
 
-        // Find random point in base
-        // Polar coords measured from center of base
-        double r = FRandom(0, Tan(accuracy));  // tan(accuracy) is radius of base
-        double t = FRandom(0, 360);
+            // Extract angle and pitch from trajectory
+            angle = VectorAngle(v.x, v.y);
+            pitch = -ASin(v.z / v.Length());
+        }
+        else if (accuracy > 0)
+        {
+            // Generate random vector in sphere around end of axis
+            double r = Sin(accuracy);
+            while (v == (0, 0, 0) || v.Length() > r)
+            {
+                v = (FRandom(-r, r), FRandom(-r, r), FRandom(-r, r));
+            }
 
-        // Scale basis vectors by coordinates
-        right *= r * Cos(t);
-        up *= r * Sin(t);
+            Vector3 axis = (Cos(pitch) * Cos(angle), Cos(pitch) * Sin(angle), -Sin(pitch));
+            v += axis;
 
-        // Find bullet trajectory
-        Vector3 bullet = axis + right + up;
-
-        // Extract angle and pitch from trajectory
-        angle = VectorAngle(bullet.x, bullet.y);
-        bullet.xy = RotateVector(bullet.xy, -angle);  // Is there a function to find pitch?
-        pitch = -VectorAngle(bullet.x, bullet.z);
+            // Extract angle and pitch from trajectory
+            angle = VectorAngle(v.x, v.y);
+            pitch = -ASin(v.z / v.Length());
+        }
 
         return angle, pitch;
     }
