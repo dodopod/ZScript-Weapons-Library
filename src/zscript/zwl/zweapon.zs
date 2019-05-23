@@ -717,6 +717,10 @@ class ZWeapon : Weapon
             {
                 v = (FRandom(-1, 1), FRandom(-1, 1), FRandom(-1, 1));
             }
+
+            // Extract angle and pitch from trajectory
+            angle = VectorAngle(v.x, v.y);
+            pitch = -ASin(v.z / v.Length());
         }
         else if (accuracy > 0)
         {
@@ -729,12 +733,11 @@ class ZWeapon : Weapon
 
             Vector3 axis = (Cos(pitch) * Cos(angle), Cos(pitch) * Sin(angle), -Sin(pitch));
             v += axis;
-        }
 
-        // Extract angle and pitch from trajectory
-        angle = VectorAngle(v.x, v.y);
-        v.xy = RotateVector(v.xy, -angle);  // Is there a function to find pitch?
-        pitch = -VectorAngle(v.x, v.z);
+            // Extract angle and pitch from trajectory
+            angle = VectorAngle(v.x, v.y);
+            pitch = -ASin(v.z / v.Length());
+        }
 
         return angle, pitch;
     }
