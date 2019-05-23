@@ -707,14 +707,28 @@ class ZWeapon : Weapon
     //  - pitch: pitch of axis
     double, double BulletAngle(double accuracy, double angle, double pitch)
     {
-        if (accuracy == 0) return angle, pitch;
+        Vector3 v = (0, 0, 0);
 
-        // Generate random vector in sphere section
-        Vector3 axis = (Cos(pitch) * Cos(angle), Cos(pitch) * Sin(angle), -Sin(pitch));
-        Vector3 v;
-        while (v == (0, 0, 0) || v.Length() > 1 || ACos(axis dot v.Unit()) > accuracy)
+        if (accuracy > 10)
         {
-            v = (FRandom(-1, 1), FRandom(-1, 1), FRandom(-1, 1));
+            // Generate random vector in sphere section
+            Vector3 axis = (Cos(pitch) * Cos(angle), Cos(pitch) * Sin(angle), -Sin(pitch));
+            while (v == (0, 0, 0) || v.Length() > 1 || ACos(axis dot v.Unit()) > accuracy)
+            {
+                v = (FRandom(-1, 1), FRandom(-1, 1), FRandom(-1, 1));
+            }
+        }
+        else if (accuracy > 0)
+        {
+            // Generate random vector in sphere around end of axis
+            double r = Sin(accuracy);
+            while (v == (0, 0, 0) || v.Length() > r)
+            {
+                v = (FRandom(-r, r), FRandom(-r, r), FRandom(-r, r));
+            }
+
+            Vector3 axis = (Cos(pitch) * Cos(angle), Cos(pitch) * Sin(angle), -Sin(pitch));
+            v += axis;
         }
 
         // Extract angle and pitch from trajectory
