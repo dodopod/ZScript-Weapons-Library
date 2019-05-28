@@ -16,7 +16,7 @@ class ZLaser : ZTrail
 
     Default
     {
-        Speed 1;  // This is a hack to find the pitch
+        Speed 0.001;  // This is a hack to find the pitch
 
         ZLaser.Color "red";
         ZLaser.Spacing 1;
@@ -34,8 +34,9 @@ class ZLaser : ZTrail
         // Projectiles are fired w/ pitch = 0, but we can find the real pitch from our velocity
         if (target) pitch = -ATan2(vel.z, vel.xy.Length());
 
+        Actor mo = target ? target : Actor(self);
         FLineTraceData traceData;
-        LineTrace(angle, range, pitch, data: traceData);
+        mo.LineTrace(angle, range, pitch, data: traceData);
 
         DrawSegment(pos, traceData.hitLocation, colour, colour, scale.x, -1, alpha, -1, spacing, lifetime, (0, 0, 0),
                     (0, 0, 0), fadeStep, sizeStep, PF_FullBright);
