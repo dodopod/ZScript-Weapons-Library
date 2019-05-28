@@ -82,12 +82,23 @@ class ZTracerTrail : ZTrail
     double lengthFactor;
     Color headColor, tailColor;
     double spacing;
+    Vector3 spawnPos;
+
+    override void PostBeginPlay()
+    {
+        spawnPos = pos;
+
+        Super.PostBeginPlay();
+    }
 
     override void Tick()
     {
         Super.Tick();
 
-        DrawSegment(pos, pos - lengthFactor * vel, headColor, tailColor, scale.x, 0, alpha, -1, spacing, 1, vel, (0, 0, 0), -1,
+        Vector3 trailEnd = pos - lengthFactor * vel;
+        if ((trailEnd - pos).Length() > (spawnPos - pos).Length()) trailEnd = spawnPos;
+
+        DrawSegment(pos, trailEnd, headColor, tailColor, scale.x, 0, alpha, -1, spacing, 1, vel, (0, 0, 0), -1,
                     0, PF_FullBright);
     }
 }
