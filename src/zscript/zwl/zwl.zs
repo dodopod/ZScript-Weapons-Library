@@ -7,3 +7,4 @@
 #include "zscript/zwl/ztracer.zs"
 #include "zscript/zwl/zlaser.zs"
 #include "zscript/zwl/zlightning.zs"
+#include "zscript/zwl/zrailgun.zs"

@@ -35,7 +35,7 @@ class ZLightning : ZTrail
 
     Default
     {
-        Speed 1;  // This is a hack to find the pitch
+        Speed 0.001;  // This is a hack to find the pitch
 
         ZLightning.Color 0xddddff;
         ZLightning.Alpha 0.8;
@@ -59,8 +59,9 @@ class ZLightning : ZTrail
         // Projectiles are fired w/ pitch = 0, but we can find the real pitch from our velocity
         if (target) pitch = -ATan2(vel.z, vel.xy.Length());
 
+        Actor mo = target ? target : Actor(self);
         FLineTraceData traceData;
-        LineTrace(angle, range, pitch, data: traceData);
+        mo.LineTrace(angle, range, pitch, data: traceData);
 
         // These will be used to offset points along the bolt
         Vector3 right = (Cos(angle-90.0), Sin(angle-90.0), 0.0);
