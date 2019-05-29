@@ -240,7 +240,7 @@ class ZWeapon : Weapon
 
                     double playerPitch = pitch;
                     pitch = pelPitch;
-                    SpawnPlayerMissile(tracerType, pelAngle, xy.x, xy.y, offset.z);
+                    SpawnPlayerMissile(tracerType, pelAngle, xy.x, xy.y, offset.z + 4);
                     pitch = playerPitch;
                 }
             }
