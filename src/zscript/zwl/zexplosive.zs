@@ -21,6 +21,7 @@ class ZExplosive : Actor
         ZPF_DetectFriends = 1 << 1
     }
 
+    bool bWillHitOwner;
     int explosiveFlags;
 
 
@@ -35,6 +36,14 @@ class ZExplosive : Actor
         Projectile;
     }
 
+
+    override void BeginPlay()
+    {
+        Super.BeginPlay();
+
+        bWillHitOwner = bHitOwner;
+        bHitOwner = false;
+    }
 
     override void Tick()
     {
@@ -67,6 +76,21 @@ class ZExplosive : Actor
             vel = (0, 0, 0);
 
             SetStateLabel("Stick.Wall");
+        }
+
+        if (bWillHitOwner)
+        {
+            // Can't use CheckBlock, since it damages player like a ripper
+            Vector3 v = pos - target.pos;
+
+            if (Abs(v.x) > radius + target.radius
+                || Abs(v.y) > radius + target.radius
+                || v.z < -height
+                || v.z > target.height)
+            {
+                bWillHitOwner = false;
+                bHitOwner = true;
+            }
         }
     }
 
