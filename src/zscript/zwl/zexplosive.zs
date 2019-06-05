@@ -11,8 +11,9 @@ class ZExplosive : Actor
 
     enum EShrapnelFlags
     {
-        ZSF_Horizontal  = 1 << 0,
-        ZSF_NotMissile  = 1 << 1
+        ZSF_Horizontal      = 1 << 0,
+        ZSF_NotMissile      = 1 << 1,
+        ZSF_AddParentVel    = 1 << 2
     }
 
     enum EProximityFlags
@@ -155,6 +156,7 @@ class ZExplosive : Actor
 
             let frag = SpawnMissileAngle(fragType, fragAngle, 0);
             frag.Vel3dFromAngle(frag.speed, fragAngle, fragPitch);
+            if (flags & ZSF_AddParentVel) frag.vel += vel;
             frag.SetOrigin(pos + offset, false);
             if (frag && !(flags & ZSF_NotMissile)) frag.target = target;
         }
