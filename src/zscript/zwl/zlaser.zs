@@ -32,14 +32,24 @@ class ZLaser : ZTrail
 
         // Find beam endpoint
         // Projectiles are fired w/ pitch = 0, but we can find the real pitch from our velocity
-        if (target) pitch = -ATan2(vel.z, vel.xy.Length());
+        if (target && pitch == 0) pitch = -ATan2(vel.z, vel.xy.Length());
 
         Actor mo = target ? target : Actor(self);
         FLineTraceData traceData;
         mo.LineTrace(angle, range, pitch, data: traceData);
 
+        /*
         DrawSegment(pos, traceData.hitLocation, colour, colour, scale.x, -1, alpha, -1, spacing, lifetime, (0, 0, 0),
                     (0, 0, 0), fadeStep, sizeStep, PF_FullBright);
+        */
+
+        Vector3 dis = traceData.hitLocation - pos;
+        for (int i = 0; i < dis.Length() / spacing; ++i)
+        {
+            double t = FRandom(0, 1);
+            Vector3 ofs = (Lerp(0, dis.x, t), Lerp(0, dis.y, t), Lerp(0, dis.z, t));
+            A_SpawnParticle(colour, PF_FullBright, lifetime, scale.x, 0, ofs.x, ofs.y, ofs.z, 0, 0, 0, 0, 0, 0, alpha, fadeStep, sizeStep);
+        }
 
         Destroy();
     }

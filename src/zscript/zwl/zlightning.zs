@@ -57,7 +57,7 @@ class ZLightning : ZTrail
 
         // Find lightning endpoint
         // Projectiles are fired w/ pitch = 0, but we can find the real pitch from our velocity
-        if (target) pitch = -ATan2(vel.z, vel.xy.Length());
+        if (target && pitch == 0) pitch = -ATan2(vel.z, vel.xy.Length());
 
         Actor mo = target ? target : Actor(self);
         FLineTraceData traceData;
