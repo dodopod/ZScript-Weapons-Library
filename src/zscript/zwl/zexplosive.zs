@@ -131,7 +131,7 @@ class ZExplosive : Actor
 
             let frag = SpawnMissileAngle(fragType, fragAngle, 0);
             frag.Vel3dFromAngle(frag.speed, fragAngle, fragPitch);
-            frag.SetOrigin(frag.pos + offset, false);
+            frag.SetOrigin(pos + offset, false);
             if (frag && !(flags & ZSF_NotMissile)) frag.target = target;
         }
     }
