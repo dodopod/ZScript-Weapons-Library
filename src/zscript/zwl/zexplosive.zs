@@ -199,7 +199,7 @@ class ZExplosive : Actor
     }
 
 
-    void ZWL_LaserGuidedMissile(double threshold, double maxTurnAngle)
+    void ZWL_LaserGuidedMissile(double maxTurnAngle)
     {
         if (!target) return;
         double zOffset = target.height / 2;
@@ -214,11 +214,13 @@ class ZExplosive : Actor
         target.LineTrace(target.angle, 8192, target.pitch, 0, zOffset, data: trace);
 
         Vector3 v = trace.hitLocation - pos;
+
         double targetAngle = VectorAngle(v.x, v.y);
         double targetPitch = -VectorAngle(v.xy.Length(), v.z);
 
-        angle += Clamp(DeltaAngle(angle, targetAngle), -1, 1);
-        pitch += Clamp(DeltaAngle(pitch, targetPitch), -1, 1);
+        // Note: missile can turn faster, diagonally
+        angle += Clamp(DeltaAngle(angle, targetAngle), -maxTurnAngle, maxTurnAngle);
+        pitch += Clamp(DeltaAngle(pitch, targetPitch), -maxTurnAngle, maxTurnAngle);
 
         Vel3DFromAngle(vel.Length(), angle, pitch);
     }
