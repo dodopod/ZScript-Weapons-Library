@@ -202,6 +202,11 @@ class ZExplosive : Actor
     void ZWL_LaserGuidedMissile(double maxTurnAngle)
     {
         if (!target) return;
+
+        let trace = New("LaserGuidanceLineTracer");
+        trace.source = target;
+        trace.ignore = self;
+
         double zOffset = target.height / 2;
 
         if (PlayerPawn(target) && target.player)
@@ -210,10 +215,16 @@ class ZExplosive : Actor
             zOffset *= target.player.crouchFactor;
         }
 
-        FLineTraceData trace;
-        target.LineTrace(target.angle, 8192, target.pitch, 0, zOffset, data: trace);
+        Vector3 startPos = target.pos;
+        startPos.z += zOffset;
 
-        Vector3 v = trace.hitLocation - pos;
+        Vector3 direction = (
+            Cos(target.pitch) * Cos(target.angle),
+            Cos(target.pitch) * Sin(target.angle),
+            -Sin(target.pitch));
+        trace.Trace(startPos, target.curSector, direction, 8192, 0);
+
+        Vector3 v = trace.results.hitPos - pos;
 
         double targetAngle = VectorAngle(v.x, v.y);
         double targetPitch = -VectorAngle(v.xy.Length(), v.z);
@@ -267,5 +278,24 @@ class ZExplosive : Actor
         }
 
         return angle, pitch;
+    }
+}
+
+class LaserGuidanceLineTracer : LineTracer
+{
+    Actor ignore;
+    Actor source;
+
+    override ETraceStatus TraceCallback()
+    {
+        if (results.hitType = Trace_HitActor)
+        {
+            if (results.hitActor == source || results.hitActor == ignore)
+            {
+                return Trace_Skip;
+            }
+        }
+
+        return Trace_Stop;
     }
 }
