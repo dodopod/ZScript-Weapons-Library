@@ -199,6 +199,23 @@ class ZExplosive : Actor
     }
 
 
+    void ZWL_LaserGuidedMissile(double threshold, double maxTurnAngle)
+    {
+        double zOffset = (target.height / 2 + PlayerPawn(target).attackZOffset) * target.player.crouchFactor;
+        FLineTraceData trace;
+        target.LineTrace(target.angle, 8192, target.pitch, 0, zOffset, data: trace);
+
+        Vector3 v = trace.hitLocation - pos;
+        double targetAngle = VectorAngle(v.x, v.y);
+        double targetPitch = -VectorAngle(v.xy.Length(), v.z);
+
+        angle += Clamp(DeltaAngle(angle, targetAngle), -1, 1);
+        pitch += Clamp(DeltaAngle(pitch, targetPitch), -1, 1);
+
+        Vel3DFromAngle(vel.Length(), angle, pitch);
+    }
+
+
     // Returns random angle and pitch within cone
     // I have no idea if there's a better way of doing this ¯\_(ツ)_/¯
     // Params:
