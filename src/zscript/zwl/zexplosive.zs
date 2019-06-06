@@ -201,7 +201,15 @@ class ZExplosive : Actor
 
     void ZWL_LaserGuidedMissile(double threshold, double maxTurnAngle)
     {
-        double zOffset = (target.height / 2 + PlayerPawn(target).attackZOffset) * target.player.crouchFactor;
+        if (!target) return;
+        double zOffset = target.height / 2;
+
+        if (PlayerPawn(target) && target.player)
+        {
+            zOffset += PlayerPawn(target).attackZOffset;
+            zOffset *= target.player.crouchFactor;
+        }
+
         FLineTraceData trace;
         target.LineTrace(target.angle, 8192, target.pitch, 0, zOffset, data: trace);
 
