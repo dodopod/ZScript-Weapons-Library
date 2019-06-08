@@ -60,13 +60,13 @@ class ZTracer : ZBullet
 
     override void Tick()
     {
-        Super.Tick();
-
         if (trail)
         {
             trail.SetOrigin(pos, false);
             trail.vel = vel;
         }
+
+        Super.Tick();
     }
 
     override void OnDestroy()
