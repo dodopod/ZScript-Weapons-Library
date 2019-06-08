@@ -3,6 +3,7 @@ class ZBulletPuff : BulletPuff
     Default
     {
         Decal "BulletChip";
+        Height 8;
     }
 
 	States
