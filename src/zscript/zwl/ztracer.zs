@@ -102,3 +102,60 @@ class ZTracerTrail : ZTrail
                     0, PF_FullBright);
     }
 }
+
+
+class ZModelTracer : ZBullet
+{
+    ZModelTracerTrail trail;
+
+
+    States
+    {
+    Spawn:
+        TNT1 A 1 Light("TracerGlow");
+        Loop;
+    }
+
+
+    override void PostBeginPlay()
+    {
+        Super.PostBeginPlay();
+
+        trail = ZModelTracerTrail(Spawn("ZModelTracerTrail", pos));
+        trail.scale.x = scale.x;
+        trail.scale.y = scale.y;
+    }
+
+    override void Tick()
+    {
+        Super.Tick();
+
+        if (trail)
+        {
+            trail.SetOrigin(pos, false);
+            trail.vel = vel;
+            trail.angle = angle;
+        }
+    }
+
+    override void OnDestroy()
+    {
+        if (trail) trail.Destroy();
+        Super.OnDestroy();
+    }
+}
+
+class ZModelTracerTrail : ZTrail
+{
+    Default
+    {
+        RenderStyle "Add";
+    }
+
+    States
+    {
+    Spawn:
+        TRAC A 1;
+        Loop;
+    }
+}

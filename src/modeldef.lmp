@@ -1,5 +1,4 @@
-/*
-Model BulletTracer
+Model ZModelTracerTrail
 {
 	Path "models/BulletTracer"
 	Model 0 "BulletTracer.md3"
@@ -7,6 +6,5 @@ Model BulletTracer
 	AngleOffset 90
 	DontCullBackfaces
     PitchFromMomentum
-	FrameIndex 0000 A 0 0
+	FrameIndex TRAC A 0 0
 }
-*/
