@@ -60,13 +60,13 @@ class ZTracer : ZBullet
 
     override void Tick()
     {
-        Super.Tick();
-
         if (trail)
         {
             trail.SetOrigin(pos, false);
             trail.vel = vel;
         }
+
+        Super.Tick();
     }
 
     override void OnDestroy()
@@ -93,13 +93,13 @@ class ZTracerTrail : ZTrail
 
     override void Tick()
     {
-        Super.Tick();
-
         Vector3 trailEnd = pos - lengthFactor * vel;
         if ((trailEnd - pos).Length() > (spawnPos - pos).Length()) trailEnd = spawnPos;
 
         DrawSegment(pos, trailEnd, headColor, tailColor, scale.x, 0, alpha, -1, spacing, 1, vel, (0, 0, 0), -1,
                     0, PF_FullBright);
+
+        Super.Tick();
     }
 }
 
