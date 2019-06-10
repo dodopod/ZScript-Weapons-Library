@@ -129,14 +129,14 @@ class ZModelTracer : ZBullet
 
     override void Tick()
     {
-        Super.Tick();
-
         if (trail)
         {
             trail.SetOrigin(pos, false);
             trail.vel = vel;
             trail.angle = angle;
         }
+
+        Super.Tick();
     }
 
     override void OnDestroy()
