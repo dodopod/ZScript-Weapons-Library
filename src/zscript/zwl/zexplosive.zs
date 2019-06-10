@@ -154,11 +154,12 @@ class ZExplosive : Actor
             double fragAngle, fragPitch;
             [fragAngle, fragPitch] = BulletAngle(spread, angle + angleOfs, pitch + pitchOfs);
 
-            let frag = SpawnMissileAngle(fragType, fragAngle, 0);
-            frag.Vel3dFromAngle(frag.speed, fragAngle, fragPitch);
-            if (flags & ZSF_AddParentVel) frag.vel += vel;
-            frag.SetOrigin(pos + offset, false);
-            if (frag && !(flags & ZSF_NotMissile)) frag.target = target;
+            A_SpawnProjectile(fragType,
+                height / 2,
+                0,
+                fragAngle,
+                CMF_TrackOwner | CMF_AimDirection | CMF_AbsoluteAngle | CMF_SavePitch,
+                fragPitch);
         }
     }
 

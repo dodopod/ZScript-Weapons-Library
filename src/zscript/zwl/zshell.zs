@@ -10,6 +10,8 @@ class ZShell : ZExplosive
 
     Default
     {
+        Radius 1;
+        Height 1;
         Speed 0.001;
     }
 
