@@ -51,7 +51,7 @@ class PistolBullet : ZTracer
 {
     Default
     {
-        Speed 4;
+        Speed 100;
         Damage 5;
         ZBullet.AirFriction 1;
         ZTracer.TailLength 8.0;
@@ -99,8 +99,8 @@ class ZPistol : ZWeapon replaces Pistol
 	Fire:
 		PKPF A 2 Bright
         {
-            //ZWL_FireHitscan(2, 5 * Random(1, 3), tracerType: "PistolTracer");
-            ZWL_FireProjectile("PistolBullet", 2);
+            ZWL_FireHitscan(2, 5 * Random(1, 3), tracerType: "PistolTracer");
+            //ZWL_FireProjectile("PistolBullet", 2);
             A_Light(1);
         }
 		PKPI B 2

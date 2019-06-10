@@ -15,6 +15,7 @@
 class ZTracer : ZBullet
 {
     ZTracerTrail trail;
+    Vector3 spawnPos;
 
     double tailLength;
     double particleScale;
@@ -44,6 +45,12 @@ class ZTracer : ZBullet
     }
 
 
+    override void BeginPlay()
+    {
+        Super.BeginPlay();
+        spawnPos = pos;
+    }
+
     override void PostBeginPlay()
     {
         Super.PostBeginPlay();
@@ -56,6 +63,7 @@ class ZTracer : ZBullet
         trail.tailColor = tailColor;
         trail.bNoGravity = bNoGravity;
         trail.vel = vel;
+        trail.spawnPos = spawnPos;
     }
 
     override void Tick()
@@ -83,13 +91,6 @@ class ZTracerTrail : ZTrail
     Color headColor, tailColor;
     double spacing;
     Vector3 spawnPos;
-
-    override void PostBeginPlay()
-    {
-        spawnPos = pos;
-
-        Super.PostBeginPlay();
-    }
 
     override void Tick()
     {
