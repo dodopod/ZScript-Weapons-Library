@@ -10,3 +10,7 @@ DoomEdNums
     1001 = "ZFragGrenade"
     1002 = "ZLandMine"
 }
+
+Map range "Firing Range"
+{
+}
