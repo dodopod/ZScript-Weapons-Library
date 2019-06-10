@@ -1,0 +1,12 @@
+GameInfo
+{
+    PlayerClasses = "ZWeaponPlayer"
+    StatusBarClass = "ZStatusBar"
+}
+
+DoomEdNums
+{
+    1000 = "ZSniperRifle"
+    1001 = "ZFragGrenade"
+    1002 = "ZLandMine"
+}

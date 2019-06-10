@@ -1,0 +1,12 @@
+version "3.6"
+
+#include "zscript/demo/zland_mine.zs"
+#include "zscript/demo/zplasma_rifle.zs"
+#include "zscript/demo/zfrag_grenade.zs"
+#include "zscript/demo/zrocket_launcher.zs"
+#include "zscript/demo/zsniper_rifle.zs"
+#include "zscript/demo/zchaingun.zs"
+#include "zscript/demo/zshotgun.zs"
+#include "zscript/demo/zpistol.zs"
+#include "zscript/demo/zweapon_player.zs"
+#include "zscript/demo/status_bar.zs"
