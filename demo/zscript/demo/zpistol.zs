@@ -35,29 +35,16 @@ class PistolEmptyMag : ZCasing
     }
 }
 
-class PistolTracer : ZTracer
+class PistolTracer : ZModelTracer
 {
     Default
     {
-        Speed 100;
+        Speed 40;
+        Scale 3;
         Decal "";
         ZBullet.AirFriction 1;
         ZBullet.PuffType "";
         +NoGravity
-    }
-}
-
-class PistolBullet : ZTracer
-{
-    Default
-    {
-        Speed 100;
-        Damage 5;
-        ZBullet.AirFriction 1;
-        ZTracer.TailLength 8.0;
-
-        +NoGravity
-        +StrifeDamage
     }
 }
 
@@ -100,7 +87,6 @@ class ZPistol : ZWeapon replaces Pistol
 		PKPF A 2 Bright
         {
             ZWL_FireHitscan(2, 5 * Random(1, 3), tracerType: "PistolTracer");
-            //ZWL_FireProjectile("PistolBullet", 2);
             A_Light(1);
         }
 		PKPI B 2
