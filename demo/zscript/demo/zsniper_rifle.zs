@@ -18,19 +18,6 @@ class RifleBullet : ZTracer
 }
 
 
-class ModelRifleBullet : ZModelTracer
-{
-    Default
-    {
-        Speed 400;
-        Damage 16;
-        Scale 4;
-
-        +StrifeDamage
-    }
-}
-
-
 class RifleCasing : ZCasing
 {
     Default
@@ -100,7 +87,7 @@ class ZSniperRifle : ZWeapon
 
         SNPF A 2 Bright
         {
-            ZWL_FireProjectile("ModelRifleBullet", 1, -1, null, 1, (0, 8, 0));
+            ZWL_FireProjectile("RifleBullet", 1, -1, null, 1, (0, 8, 0));
             A_Light(2);
         }
         SNPF B 2 Bright A_Light(1);
@@ -140,7 +127,7 @@ class ZSniperRifle : ZWeapon
     Zoom.Fire:
         SNPS A 2
         {
-            ZWL_FireProjectile("ModelRifleBullet", 0, -1, null, 1, (0, 0, 8));
+            ZWL_FireProjectile("RifleBullet", 0, -1, null, 1, (0, 0, 8));
             A_Light(2);
         }
         SNPS A 2 A_Light(1);
