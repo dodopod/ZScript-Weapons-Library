@@ -29,7 +29,8 @@ class ZExplosive : Actor
     Flagdef AutoCountdown: explosiveFlags, 0;
     Flagdef StickToFloors: explosiveFlags, 1;
     Flagdef StickToWalls: explosiveFlags, 2;
-    Flagdef StickToCeilings: explosiveFlags, 3; // TODO: StickToActors
+    Flagdef StickToCeilings: explosiveFlags, 3;
+    Flagdef StickToActors: explosiveFlags, 4;
 
 
     Default
@@ -57,6 +58,7 @@ class ZExplosive : Actor
             bStickToFloors = false;
             bStickToCeilings = false;
             bStickToWalls = false;
+            bStickToActors = false;
 
             bMoveWithSector = true;
             vel = (0, 0, 0);
@@ -69,6 +71,7 @@ class ZExplosive : Actor
             bStickToFloors = false;
             bStickToCeilings = false;
             bStickToWalls = false;
+            bStickToActors = false;
 
             bNoGravity = true;
             vel = (0, 0, 0);
@@ -81,11 +84,25 @@ class ZExplosive : Actor
             bStickToFloors = false;
             bStickToCeilings = false;
             bStickToWalls = false;
+            bStickToActors = false;
 
             bNoGravity = true;
             vel = (0, 0, 0);
 
             SetStateLabel("Stick.Wall");
+        }
+
+        if (bStickToActors && blockingMobj)
+        {
+            bStickToFloors = false;
+            bStickToCeilings = false;
+            bStickToWalls = false;
+            bStickToActors = false;
+
+            bNoGravity = true;
+            vel = (0, 0, 0);
+
+            SetStateLabel("Stick.Actor");
         }
 
         if (bWillHitOwner)
