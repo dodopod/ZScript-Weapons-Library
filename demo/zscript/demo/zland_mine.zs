@@ -24,6 +24,7 @@ class LiveMine : ZExplosive
         +Shootable
         +MoveWithSector
         +RollSprite
+        +DontFall
         +ZExplosive.StickToFloors
         +ZExplosive.StickToWalls
         +ZExplosive.StickToCeilings
@@ -40,6 +41,7 @@ class LiveMine : ZExplosive
             roll += 90;
             pitch = -90;
         }
+    // Fallthrough
     Stick:
         LMIN A 20 A_PlaySound("weapons/MineLand");
     // Fallthrough
@@ -56,7 +58,6 @@ class LiveMine : ZExplosive
             //return ZWL_Proximity(128, "Death", ZPF_DetectEnemies | ZPF_DetectFriends);
         }
         Loop;
-    Death:
     Death:
         /*
         LMIN ABABAB 4;

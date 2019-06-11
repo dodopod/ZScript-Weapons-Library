@@ -55,6 +55,9 @@ class ZExplosive : Actor
         if (bStickToFloors && blockingFloor)
         {
             bStickToFloors = false;
+            bStickToCeilings = false;
+            bStickToWalls = false;
+
             bMoveWithSector = true;
             vel = (0, 0, 0);
 
@@ -63,7 +66,10 @@ class ZExplosive : Actor
 
         if (bStickToCeilings && blockingCeiling)
         {
+            bStickToFloors = false;
             bStickToCeilings = false;
+            bStickToWalls = false;
+
             bNoGravity = true;
             vel = (0, 0, 0);
 
@@ -72,7 +78,10 @@ class ZExplosive : Actor
 
         if (bStickToWalls && blockingLine)
         {
+            bStickToFloors = false;
+            bStickToCeilings = false;
             bStickToWalls = false;
+
             bNoGravity = true;
             vel = (0, 0, 0);
 
