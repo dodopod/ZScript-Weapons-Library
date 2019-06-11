@@ -79,7 +79,7 @@ class ZExplosive : Actor
             SetStateLabel("Stick.Ceiling");
         }
 
-        if (bStickToWalls && blockingLine)
+        if (bStickToWalls && blockingLine && !blocking3DFloor)
         {
             bStickToFloors = false;
             bStickToCeilings = false;

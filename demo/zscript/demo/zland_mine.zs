@@ -22,12 +22,13 @@ class LiveMine : ZExplosive
         -NoBlockMap
         +NoBlood
         +Shootable
-        +MoveWithSector
         +RollSprite
         +DontFall
+        +HitOwner
         +ZExplosive.StickToFloors
         +ZExplosive.StickToWalls
         +ZExplosive.StickToCeilings
+        +ZExplosive.StickToActors
     }
 
     States
