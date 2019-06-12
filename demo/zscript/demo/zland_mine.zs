@@ -42,7 +42,13 @@ class LiveMine : ZExplosive
             roll += 90;
             pitch = 90;
         }
-    // Fallthrough
+        Goto Stick;
+    Stick.Ceiling:
+        LMIN A 0
+        {
+            roll += 180;
+            pitch = 180;
+        }
     Stick:
         LMIN A 20;
     // Fallthrough
