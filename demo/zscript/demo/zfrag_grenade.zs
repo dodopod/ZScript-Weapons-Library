@@ -11,7 +11,7 @@ class LiveGrenade : ZExplosive
 {
     Default
     {
-        Radius 10;
+        Radius 16;
         Height 8;
         Health 1;
         BounceType "Grenade";
