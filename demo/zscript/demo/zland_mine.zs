@@ -17,7 +17,7 @@ class LiveMine : ZExplosive
         Health 1;
         DeathSound "weapons/GrenadeExplode";
 
-        -Missile
+        //-Missile
         -NoGravity
         -NoBlockMap
         +NoBlood
@@ -25,10 +25,21 @@ class LiveMine : ZExplosive
         +RollSprite
         +DontFall
         +HitOwner
+        /*
         +ZExplosive.StickToFloors
         +ZExplosive.StickToWalls
         +ZExplosive.StickToCeilings
         +ZExplosive.StickToActors
+        */
+        +UseBounceState
+        +BounceOnFloors
+        +BounceOnCeilings
+        +BounceOnWalls
+        +AllowBounceOnActors
+        +BounceOnActors
+
+        BounceFactor 0;
+        WallBounceFactor 0;
     }
 
     States
@@ -37,13 +48,15 @@ class LiveMine : ZExplosive
         LMIN A 1;
         Loop;
     Stick.Wall:
+    //Bounce.Wall:
         LMIN A 0
         {
             roll += 90;
-            pitch = -90;
+            pitch = 90;
         }
     // Fallthrough
     Stick:
+    //Bounce:
         LMIN A 20 A_PlaySound("weapons/MineLand");
     // Fallthrough
     Armed:
