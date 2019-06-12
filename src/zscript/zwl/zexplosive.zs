@@ -23,7 +23,9 @@ class ZExplosive : Actor
     }
 
     bool bWillHitOwner;
+    bool bWillBeSolid;
     int explosiveFlags;
+    State stickState;
 
 
     Flagdef AutoCountdown: explosiveFlags, 0;
@@ -39,9 +41,75 @@ class ZExplosive : Actor
     }
 
 
+    States
+    {
+    Bounce.Floor:
+        TNT1 A 0
+        {
+            vel = (0, 0, 0);
+            bMoveWithSector = true;
+
+            return ResolveState("Stick.Floor");
+        }
+    Bounce.Ceiling:
+        TNT1 A 0
+        {
+            vel = (0, 0, 0);
+            bNoGravity = true;
+
+            return ResolveState("Stick.Ceiling");
+        }
+    Bounce.Wall:
+        TNT1 A 0
+        {
+            vel = (0, 0, 0);
+            bNoGravity = true;
+
+            return ResolveState("Stick.Wall");
+        }
+    Bounce.Actor:
+        TNT1 A 0
+        {
+            vel = (0, 0, 0);
+            bNoGravity = true;
+
+            return ResolveState("Stick.Actor");
+        }
+    }
+
+
     override void BeginPlay()
     {
         Super.BeginPlay();
+
+        if (bStickToFloors)
+        {
+            bBounceOnFloors = true;
+            bUseBounceState = true;
+            bounceFactor = 0;
+        }
+
+        if (bStickToCeilings)
+        {
+            bBounceOnCeilings = true;
+            bUseBounceState = true;
+            bounceFactor = 0;
+        }
+
+        if (bStickToWalls)
+        {
+            bBounceOnWalls = true;
+            bUseBounceState = true;
+            wallBounceFactor = 0;
+        }
+
+        if (bStickToActors)
+        {
+            bAllowBounceOnActors = true;
+            bBounceOnActors = true;
+            bUseBounceState = true;
+            bounceFactor = 0;
+        }
 
         bWillHitOwner = bHitOwner;
         bHitOwner = false;
@@ -52,58 +120,6 @@ class ZExplosive : Actor
         Super.Tick();
 
         if (bAutoCountdown && reactionTime > 0) A_Countdown();
-
-        if (bStickToFloors && blockingFloor)
-        {
-            bStickToFloors = false;
-            bStickToCeilings = false;
-            bStickToWalls = false;
-            bStickToActors = false;
-
-            bMoveWithSector = true;
-            vel = (0, 0, 0);
-
-            SetStateLabel("Stick.Floor");
-        }
-
-        if (bStickToCeilings && blockingCeiling)
-        {
-            bStickToFloors = false;
-            bStickToCeilings = false;
-            bStickToWalls = false;
-            bStickToActors = false;
-
-            bNoGravity = true;
-            vel = (0, 0, 0);
-
-            SetStateLabel("Stick.Ceiling");
-        }
-
-        if (bStickToWalls && blockingLine)
-        {
-            bStickToFloors = false;
-            bStickToCeilings = false;
-            bStickToWalls = false;
-            bStickToActors = false;
-
-            bNoGravity = true;
-            vel = (0, 0, 0);
-
-            SetStateLabel("Stick.Wall");
-        }
-
-        if (bStickToActors && blockingMobj)
-        {
-            bStickToFloors = false;
-            bStickToCeilings = false;
-            bStickToWalls = false;
-            bStickToActors = false;
-
-            bNoGravity = true;
-            vel = (0, 0, 0);
-
-            SetStateLabel("Stick.Actor");
-        }
 
         if (bWillHitOwner)
         {
@@ -117,6 +133,9 @@ class ZExplosive : Actor
             {
                 bWillHitOwner = false;
                 bHitOwner = true;
+
+                bSolid = bWillBeSolid;
+                bWillBeSolid = false;
             }
         }
     }
@@ -189,11 +208,11 @@ class ZExplosive : Actor
         }
     }
 
-    // TODO: absolute flags, offset
-    State ZWL_Tripwire(StateLabel st = "Death", double angleOfs = 0, double pitchOfs = 0, int range = 8192)
+    // TODO: absolute flags
+    State ZWL_Tripwire(StateLabel st = "Death", Vector3 offset = (0, 0, 0), double angleOfs = 0, double pitchOfs = 0, int range = 8192)
     {
         FLineTraceData trace;
-        LineTrace(angle + angleOfs, range, pitch + pitchOfs, data: trace);
+        LineTrace(angle + angleOfs, range, pitch + pitchOfs, 0, offset.z, offset.x, offset.y, trace);
 
         if (trace.hitType == Trace_HitActor)
         {
