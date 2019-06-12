@@ -16,8 +16,8 @@ class LiveMine : ZExplosive
         Radius 8;
         Health 1;
         DeathSound "weapons/GrenadeExplode";
+        BounceSound "weapons/MineLand";
 
-        //-Missile
         -NoGravity
         -NoBlockMap
         +NoBlood
@@ -25,21 +25,10 @@ class LiveMine : ZExplosive
         +RollSprite
         +DontFall
         +HitOwner
-        /*
         +ZExplosive.StickToFloors
         +ZExplosive.StickToWalls
         +ZExplosive.StickToCeilings
         +ZExplosive.StickToActors
-        */
-        +UseBounceState
-        +BounceOnFloors
-        +BounceOnCeilings
-        +BounceOnWalls
-        +AllowBounceOnActors
-        +BounceOnActors
-
-        BounceFactor 0;
-        WallBounceFactor 0;
     }
 
     States
@@ -48,7 +37,6 @@ class LiveMine : ZExplosive
         LMIN A 1;
         Loop;
     Stick.Wall:
-    //Bounce.Wall:
         LMIN A 0
         {
             roll += 90;
@@ -56,8 +44,7 @@ class LiveMine : ZExplosive
         }
     // Fallthrough
     Stick:
-    //Bounce:
-        LMIN A 20 A_PlaySound("weapons/MineLand");
+        LMIN A 20;
     // Fallthrough
     Armed:
         LMIN B 1
@@ -109,7 +96,11 @@ class ZLandMine : ZWeapon
         MINE A 1 A_Raise;
         Wait;
     Deselect:
+        TNT1 A 0 ZWL_JumpIfEmpty("Deselect.Empty");
         MINE A 1 A_Lower;
+        Wait;
+    Deselect.Empty:
+        MIN3 A 1 A_Lower;
         Wait;
     Ready:
         MINE A 1 ZWL_WeaponReady;
@@ -117,7 +108,8 @@ class ZLandMine : ZWeapon
     Fire:
         MINE GFEDCB 2;
         MIN3 L 1 ZWL_FireProjectile("LiveMine", 0, speed: 8, flags: ZPF_AddPlayerVel);
-        MIN3 KJIHGFECBA 1;
+        MIN3 KJIHGFECB 1;
+        MIN3 A 1 ZWL_CheckReload;
         Goto Ready;
     }
 }
