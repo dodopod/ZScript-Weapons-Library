@@ -23,9 +23,9 @@ class ZExplosive : Actor
     }
 
     bool bWillHitOwner;
-    bool bWillBeSolid;
     int explosiveFlags;
-    State stickState;
+    Actor stuckActor;
+    Vector3 stuckActorOffset;
 
 
     Flagdef AutoCountdown: explosiveFlags, 0;
@@ -72,6 +72,9 @@ class ZExplosive : Actor
         {
             vel = (0, 0, 0);
             bNoGravity = true;
+            stuckActor = blockingMobj;
+            stuckActorOffset = pos - stuckActor.pos;
+            stuckActorOffset.xy = RotateVector(stuckActorOffset.xy, -stuckActor.angle);
 
             return ResolveState("Stick.Actor");
         }
@@ -133,10 +136,15 @@ class ZExplosive : Actor
             {
                 bWillHitOwner = false;
                 bHitOwner = true;
-
-                bSolid = bWillBeSolid;
-                bWillBeSolid = false;
             }
+        }
+
+        if (stuckActor)
+        {
+            Vector3 newPos = stuckActorOffset;
+            newPos.xy = RotateVector(newPos.xy, stuckActor.angle);
+            newPos += stuckActor.pos;
+            SetOrigin(newPos, true);
         }
     }
 
