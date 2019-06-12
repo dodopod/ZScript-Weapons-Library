@@ -23,6 +23,7 @@ class ZExplosive : Actor
     }
 
     bool bWillHitOwner;
+    bool bWillBeSolid;
     int explosiveFlags;
 
 
@@ -42,6 +43,28 @@ class ZExplosive : Actor
     override void BeginPlay()
     {
         Super.BeginPlay();
+
+        /*
+        if (bStickToFloors) bBounceOnFloors = true;
+        if (bStickToCeilings) bBounceOnCeilings = true;
+        if (bStickToWalls) bBounceOnWalls = true;
+        if (bStickToActors)
+        {
+            bAllowBounceOnActors = true;
+            bBounceOnActors = true;
+        }
+        */
+
+        if (bStickToFloors || bStickToCeilings || bStickToWalls || bStickToActors)
+        {
+            bMissile = false;   // So it doesn't explode on touching anything
+        }
+
+        if (bStickToActors)
+        {
+            bWillBeSolid = true;
+            bCanPass = true;
+        }
 
         bWillHitOwner = bHitOwner;
         bHitOwner = false;
@@ -92,7 +115,9 @@ class ZExplosive : Actor
             SetStateLabel("Stick.Wall");
         }
 
-        if (bStickToActors && blockingMobj)
+        if (bStickToActors && blockingMobj
+            && blockingMobj.pos.z < pos.z + height
+            && blockingMobj.pos.z + blockingMobj.height > pos.z)
         {
             bStickToFloors = false;
             bStickToCeilings = false;
@@ -117,6 +142,9 @@ class ZExplosive : Actor
             {
                 bWillHitOwner = false;
                 bHitOwner = true;
+
+                bSolid = bWillBeSolid;
+                bWillBeSolid = false;
             }
         }
     }
