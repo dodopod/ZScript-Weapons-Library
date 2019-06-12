@@ -15,7 +15,6 @@ class LiveMine : ZExplosive
         Height 8;
         Radius 8;
         Health 1;
-        Gravity 0.1;
         DeathSound "weapons/GrenadeExplode";
         BounceSound "weapons/MineLand";
 
@@ -29,6 +28,7 @@ class LiveMine : ZExplosive
         +ZExplosive.StickToFloors
         +ZExplosive.StickToWalls
         +ZExplosive.StickToCeilings
+        +ZExplosive.StickToActors
     }
 
     States
