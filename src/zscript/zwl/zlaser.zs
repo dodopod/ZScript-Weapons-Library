@@ -1,3 +1,5 @@
+// Emits line of particles when fired
+// Useful for Unmaker-style weapons, laser tripwires, etc.
 class ZLaser : ZTrail
 {
     Color colour;
@@ -6,6 +8,7 @@ class ZLaser : ZTrail
     double fadeStep;
     double sizeStep;
     double range;
+    Name style;
 
     Property Color : colour;
     Property Spacing : spacing;
@@ -13,6 +16,7 @@ class ZLaser : ZTrail
     Property Range : range;
     Property FadeStep : fadeStep;
     Property SizeStep : sizeStep;
+    Property Style : style;
 
     Default
     {
@@ -24,6 +28,7 @@ class ZLaser : ZTrail
         ZLaser.Range 8192;
         ZLaser.FadeStep -1;
         ZLaser.SizeStep 0;
+        ZLaser.Style 'Fuzzy';
     }
 
     override void PostBeginPlay()
@@ -38,17 +43,51 @@ class ZLaser : ZTrail
         FLineTraceData traceData;
         mo.LineTrace(angle, range, pitch, data: traceData);
 
-        /*
-        DrawSegment(pos, traceData.hitLocation, colour, colour, scale.x, -1, alpha, -1, spacing, lifetime, (0, 0, 0),
-                    (0, 0, 0), fadeStep, sizeStep, PF_FullBright);
-        */
-
-        Vector3 dis = traceData.hitLocation - pos;
-        for (int i = 0; i < dis.Length() / spacing; ++i)
+        if (style == 'Fuzzy')
         {
-            double t = FRandom(0, 1);
-            Vector3 ofs = (Lerp(0, dis.x, t), Lerp(0, dis.y, t), Lerp(0, dis.z, t));
-            A_SpawnParticle(colour, PF_FullBright, lifetime, scale.x, 0, ofs.x, ofs.y, ofs.z, 0, 0, 0, 0, 0, 0, alpha, fadeStep, sizeStep);
+            Vector3 dis = traceData.hitLocation - pos;
+            for (int i = 0; i < dis.Length() / spacing; ++i)
+            {
+                double t = FRandom(0, 1);
+                Vector3 ofs = (Lerp(0, dis.x, t), Lerp(0, dis.y, t), Lerp(0, dis.z, t));
+                A_SpawnParticle(
+                    colour,
+                    PF_FullBright,
+                    lifetime,
+                    scale.x,
+                    0,
+                    ofs.x,
+                    ofs.y,
+                    ofs.z,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    alpha,
+                    fadeStep,
+                    sizeStep);
+            }
+        }
+        else
+        {
+            DrawSegment(
+                pos,
+                traceData.hitLocation,
+                colour,
+                colour,
+                scale.x,
+                -1,
+                alpha,
+                -1,
+                spacing,
+                lifetime,
+                (0, 0, 0),
+                (0, 0, 0),
+                fadeStep,
+                sizeStep,
+                PF_FullBright);
         }
 
         Destroy();
