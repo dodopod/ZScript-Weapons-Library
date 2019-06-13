@@ -1,3 +1,4 @@
+// Emits lightning bolt when fired
 class ZLightningSeg : Object
 {
     Vector3 aPos, bPos;

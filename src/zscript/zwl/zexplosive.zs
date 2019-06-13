@@ -1,26 +1,28 @@
+// Base class for explosives (e.g. rockets, grenades, mines)
 class ZExplosive : Actor
 {
     enum EExplosionFlags
     {
-        ZXF_HurtSource  = XF_HurtSource,
+        ZXF_HurtSource  = XF_HurtSource,    // Most of these replicate A_Explode's flags.
         ZXF_NotMissile  = XF_NotMissile,
         ZXF_NoSplash    = XF_NoSplash,
         ZXF_ThrustZ     = XF_ThrustZ,
-        ZXF_NoAlert     = XF_ThrustZ << 1
+        ZXF_NoAlert     = XF_ThrustZ << 1   // Replaces the alert param from A_Explode.
     }
 
     enum EShrapnelFlags
     {
-        ZSF_Horizontal      = 1 << 0,
-        ZSF_NotMissile      = 1 << 1,
-        ZSF_AddParentVel    = 1 << 2
+        ZSF_Horizontal      = 1 << 0,   // Shrapnel will only be fired horizontally, like nails in A_Explode.
+        ZSF_NotMissile      = 1 << 1,   // See A_Explosive's flags.
+        ZSF_AddParentVel    = 1 << 2    // Add explosive's velocity to shrapnel. Only for ZWL_ProjectileShrapnel.
     }
 
     enum EProximityFlags
     {
-        ZPF_DetectEnemies = 1 << 0,
-        ZPF_DetectFriends = 1 << 1
+        ZPF_DetectEnemies = 1 << 0, // Explode when enemies are nearby
+        ZPF_DetectFriends = 1 << 1  // Same but for friends
     }
+
 
     bool bWillHitOwner;
     int explosiveFlags;
@@ -28,8 +30,8 @@ class ZExplosive : Actor
     Vector3 stuckActorOffset;
 
 
-    Flagdef AutoCountdown: explosiveFlags, 0;
-    Flagdef StickToFloors: explosiveFlags, 1;
+    Flagdef AutoCountdown: explosiveFlags, 0;   // Explosive will enter death state after ReactionTime tics.
+    Flagdef StickToFloors: explosiveFlags, 1;   // These allow explosive to stick to different surfaces.
     Flagdef StickToWalls: explosiveFlags, 2;
     Flagdef StickToCeilings: explosiveFlags, 3;
     Flagdef StickToActors: explosiveFlags, 4;
@@ -41,6 +43,7 @@ class ZExplosive : Actor
     }
 
 
+    // NOTE: You can't define a bounce and stick state for the same surface type.
     States
     {
     Bounce.Floor:
@@ -78,6 +81,152 @@ class ZExplosive : Actor
 
             return ResolveState("Stick.Actor");
         }
+    }
+
+
+    // This is more or less just A_Explosive, at the moment,
+    // It removes the ability to fire nails; you should use ZWL_HitscanShrapnel for that,
+    void ZWL_Explode(int damage,    // How much damage is inflicted at the center of the explosion.
+        int distance,               // The area covered by the damage (damage inflicted drop linearly with distance).
+        int fullDamageDistance = 0, // The area within which full damage is inflicted.
+        Name damageType = 'None',   // The damage type to use. 'None' defaults to this actor's DamageType
+        int flags = ZXF_HurtSource) // See EExplosionFlags
+    {
+        bool alert = !(flags & ZXF_NoAlert);
+        flags &= ~ZXF_NoAlert;
+        flags |= XF_ExplicitDamageType;
+
+        if (damageType == 'None') damageType = self.damageType;
+        A_Explode(damage, distance, flags, alert, fullDamageDistance, 0, 0, "", damageType);
+    }
+
+    // Fires hitscan attacks in random directions
+    void ZWL_HitscanShrapnel(
+        int damage,                             // Damage done per fragment.
+        int fragCount,                          // Number of fragments.
+        double spread = 180,                    // Shrapnel spread, in degrees. Defaults to full sphere.
+        int range = 8192,                       // Maximum distance at which fragments can do damage.
+        Name damageType = 'None',               // Fragment damage type.
+        Class<Actor> puffType = "ZBulletPuff",  // Bullet puff class.
+        Vector3 offset = (0, 0, 0),             // Offset from which shrapnel is released.
+        double angleOfs = 0,                    // Angle offset for center of spread.
+        double pitchOfs = 0,                    // Pitch offset for center of spread.
+        int flags = 0)                          // See EShrapnelFlags
+    {
+        for (int i = 0; i < fragCount; ++i)
+        {
+            double fragAngle, fragPitch;
+            [fragAngle, fragPitch] = BulletAngle(spread, angle + angleOfs, pitch + pitchOfs);
+            LineAttack(
+                fragAngle,
+                range,
+                fragPitch,
+                damage,
+                damageType,
+                puffType,
+                LAF_NoRandomPuffZ,
+                null,
+                offset.z,
+                offset.x,
+                offset.y);
+        }
+    }
+
+    // Fires projectiles in random directions
+    void ZWL_ProjectileShrapnel(
+        Class<Actor> fragType,      // Type of fragments.
+        int fragCount,              // Number of fragments.
+        double spread = 180,        // Shrapnel spread, in degrees. Defaults to full sphere.
+        Vector3 offset = (0, 0, 0), // Offset from which shrapnel is released.
+        double angleOfs = 0,        // Angle offset for center of spread.
+        double pitchOfs = 0,        // Pitch offset for center of spread.
+        int flags = 0)              // See EShrapnelFlags
+    {
+        for (int i = 0; i < fragCount; ++i)
+        {
+            double fragAngle, fragPitch;
+            [fragAngle, fragPitch] = BulletAngle(spread, angle + angleOfs, pitch + pitchOfs);
+
+            A_SpawnProjectile(fragType,
+                height / 2,
+                0,
+                fragAngle,
+                CMF_TrackOwner | CMF_AimDirection | CMF_AbsoluteAngle | CMF_SavePitch,
+                fragPitch);
+        }
+    }
+
+    // TODO: flags
+    // Sets off explosive if anything crosses beam.
+    State ZWL_Tripwire(
+        StateLabel st = "Death",    // State to jump to
+        Vector3 offset = (0, 0, 0), // Offset for beam
+        double angleOfs = 0,        // Angle to fire beam at
+        double pitchOfs = 0,        // Pitch to fire beam at
+        int range = 8192)           // Maximum detection range
+    {
+        FLineTraceData trace;
+        LineTrace(angle + angleOfs, range, pitch + pitchOfs, 0, offset.z, offset.x, offset.y, trace);
+
+        if (trace.hitType == Trace_HitActor)
+        {
+            A_PlaySound(deathSound);
+            return ResolveState(st);
+        }
+
+        return ResolveState(null);
+    }
+
+    // Sets off explosive if anything enters radius.
+    State ZWL_Proximity(
+        int range,                      // Radius in which to set off explosive
+        StateLabel st = "Death",        // State to jump to
+        int flags = ZPF_DetectEnemies)  // See EProximityFlags
+    {
+        let it = BlockThingsIterator.Create(self, range);
+        while (it.Next())
+        {
+
+            if (Distance3D(it.thing) < range && CheckSight(it.thing))
+            {
+                let src = target ? target : Actor(self);
+                if (flags & ZPF_DetectEnemies && src.isHostile(it.thing)
+                    || flags & ZPF_DetectFriends && src.isFriend(it.thing))
+                {
+                    A_PlaySound(deathSound);
+                    return ResolveState(st);
+                }
+            }
+        }
+
+        return ResolveState(null);
+    }
+
+    // Turns explosive toward the spot its source is looking at.
+    void ZWL_LaserGuidedMissile(double maxTurnAngle)
+    {
+        if (!target) return;
+        double zOffset = target.height / 2;
+
+        if (PlayerPawn(target) && target.player)
+        {
+            zOffset += PlayerPawn(target).attackZOffset;
+            zOffset *= target.player.crouchFactor;
+        }
+
+        FLineTraceData trace;
+        target.LineTrace(target.angle, 8192, target.pitch, 0, zOffset, data: trace);
+
+        Vector3 v = trace.hitLocation - pos;
+
+        double targetAngle = VectorAngle(v.x, v.y);
+        double targetPitch = -VectorAngle(v.xy.Length(), v.z);
+
+        // Note: missile can turn faster, diagonally
+        angle += Clamp(DeltaAngle(angle, targetAngle), -maxTurnAngle, maxTurnAngle);
+        pitch += Clamp(DeltaAngle(pitch, targetPitch), -maxTurnAngle, maxTurnAngle);
+
+        Vel3DFromAngle(vel.Length(), angle, pitch);
     }
 
 
@@ -146,137 +295,6 @@ class ZExplosive : Actor
             newPos += stuckActor.pos;
             SetOrigin(newPos, true);
         }
-    }
-
-    void ZWL_Explode(int damage,
-        int distance,
-        int fullDamageDistance = 0,
-        Name damageType = 'None',
-        int flags = ZXF_HurtSource)
-    {
-        bool alert = !(flags & ZXF_NoAlert);
-        flags &= ~ZXF_NoAlert;
-        flags |= XF_ExplicitDamageType;
-
-        if (damageType == 'None') damageType = self.damageType;
-        A_Explode(damage, distance, flags, alert, fullDamageDistance, 0, 0, "", damageType);
-    }
-
-    void ZWL_HitscanShrapnel(
-        int damage,
-        int fragCount,
-        int spread = 180,
-        int range = 8192,
-        Name damageType = 'None',
-        Class<Actor> puffType = "ZBulletPuff",
-        Vector3 offset = (0, 0, 0),
-        double angleOfs = 0,
-        double pitchOfs = 0,
-        int flags = 0)
-    {
-        for (int i = 0; i < fragCount; ++i)
-        {
-            double fragAngle, fragPitch;
-            [fragAngle, fragPitch] = BulletAngle(spread, angle + angleOfs, pitch + pitchOfs);
-            LineAttack(
-                fragAngle,
-                range,
-                fragPitch,
-                damage,
-                damageType,
-                puffType,
-                LAF_NoRandomPuffZ,
-                null,
-                offset.z,
-                offset.x,
-                offset.y);
-        }
-    }
-
-    void ZWL_ProjectileShrapnel(
-        Class<Actor> fragType,
-        int fragCount,
-        double spread = 180,
-        Vector3 offset = (0, 0, 0),
-        double angleOfs = 0,
-        double pitchOfs = 0,
-        int flags = 0)
-    {
-        for (int i = 0; i < fragCount; ++i)
-        {
-            double fragAngle, fragPitch;
-            [fragAngle, fragPitch] = BulletAngle(spread, angle + angleOfs, pitch + pitchOfs);
-
-            A_SpawnProjectile(fragType,
-                height / 2,
-                0,
-                fragAngle,
-                CMF_TrackOwner | CMF_AimDirection | CMF_AbsoluteAngle | CMF_SavePitch,
-                fragPitch);
-        }
-    }
-
-    // TODO: absolute flags
-    State ZWL_Tripwire(StateLabel st = "Death", Vector3 offset = (0, 0, 0), double angleOfs = 0, double pitchOfs = 0, int range = 8192)
-    {
-        FLineTraceData trace;
-        LineTrace(angle + angleOfs, range, pitch + pitchOfs, 0, offset.z, offset.x, offset.y, trace);
-
-        if (trace.hitType == Trace_HitActor)
-        {
-            A_PlaySound(deathSound);
-            return ResolveState(st);
-        }
-
-        return ResolveState(null);
-    }
-
-    State ZWL_Proximity(int range, StateLabel st = "Death", int flags = ZPF_DetectEnemies)
-    {
-        let it = BlockThingsIterator.Create(self, range);
-        while (it.Next())
-        {
-
-            if (Distance3D(it.thing) < range && CheckSight(it.thing))
-            {
-                let src = target ? target : Actor(self);
-                if (flags & ZPF_DetectEnemies && src.isHostile(it.thing)
-                    || flags & ZPF_DetectFriends && src.isFriend(it.thing))
-                {
-                    A_PlaySound(deathSound);
-                    return ResolveState(st);
-                }
-            }
-        }
-
-        return ResolveState(null);
-    }
-
-
-    void ZWL_LaserGuidedMissile(double maxTurnAngle)
-    {
-        if (!target) return;
-        double zOffset = target.height / 2;
-
-        if (PlayerPawn(target) && target.player)
-        {
-            zOffset += PlayerPawn(target).attackZOffset;
-            zOffset *= target.player.crouchFactor;
-        }
-
-        FLineTraceData trace;
-        target.LineTrace(target.angle, 8192, target.pitch, 0, zOffset, data: trace);
-
-        Vector3 v = trace.hitLocation - pos;
-
-        double targetAngle = VectorAngle(v.x, v.y);
-        double targetPitch = -VectorAngle(v.xy.Length(), v.z);
-
-        // Note: missile can turn faster, diagonally
-        angle += Clamp(DeltaAngle(angle, targetAngle), -maxTurnAngle, maxTurnAngle);
-        pitch += Clamp(DeltaAngle(pitch, targetPitch), -maxTurnAngle, maxTurnAngle);
-
-        Vel3DFromAngle(vel.Length(), angle, pitch);
     }
 
 

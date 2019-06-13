@@ -1,12 +1,14 @@
+// Explodes into several pellets when spawned.
+// Useful for non-hitscan shotguns.
 class ZShell : ZExplosive
 {
     class<Actor> pelletType;
     int pelletCount;
     double spread;
 
-    Property PelletType: pelletType;
-    Property PelletCount: pelletCount;
-    Property Spread: spread;
+    Property PelletType: pelletType;    // Type of pellets
+    Property PelletCount: pelletCount;  // Number of pellets
+    Property Spread: spread;            // Cone in which to fire pellets
 
     Default
     {

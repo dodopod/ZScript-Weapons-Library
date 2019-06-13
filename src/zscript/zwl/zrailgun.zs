@@ -1,3 +1,5 @@
+// Fires damageless railgun effect when spawned
+// Maybe useful as a tracer?
 class ZRailgun : ZTrail
 {
     Color ringColor;
