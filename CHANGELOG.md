@@ -1,6 +1,31 @@
 Changelog
 =========
 
+v0.3.0
+------
+### Added
+* Explosive class
+    * Proximity and tripwire triggers
+    * Laser-guidance function
+    * HitOwner flag doesn't activate until outside player
+    * Can stick to floors, ceilings, walls, and actors
+    * Projectile and hitscan shrapnel functions
+* 3D model tracer (provided by [Nash Muhandes][tracer mesh]).
+* Single ZScript include (i.e. zscript/zwl/zwl.zs).
+* Laser, lightning, and railgun trails for hitscan attacks.
+* Speed and damage parameters for `ZWL_FireProjectile`
+
+### Changed
+* New bullet spread calculation (allowing 360 degree spread).
+* ZScript file extension changed from .zc to .zs.
+
+### Fixed
+* Particle tracers no longer appear through player's back.
+* Tracers no longer move strangely when hitting a wall/ceiling.
+* Tracers now aim at same spot as hitscan attacks.
+* Casings and tracers take view height into account when crouching or standing
+  in liquid.
+
 [v0.2.0][v0.2.0]
 ------
 ### Added
@@ -37,4 +62,6 @@ v0.1.0
 * Semi-automatic fire.
 
 [v0.2.0]: https://gitlab.com/dodopod/zscript-weapons-library/compare/v0.1.0...v0.2.0
+[v0.3.0]: https://gitlab.com/dodopod/zscript-weapons-library/compare/v0.2.0...v0.3.0
 [ztracer]: https://forum.zdoom.org/viewtopic.php?f=37&t=56821
+[tracer mesh]: https://forum.zdoom.org/viewtopic.php?p=1073359#p1073359
