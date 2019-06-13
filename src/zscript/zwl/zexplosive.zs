@@ -40,6 +40,7 @@ class ZExplosive : Actor
     Default
     {
         Projectile;
+        +NoBlood
     }
 
 
