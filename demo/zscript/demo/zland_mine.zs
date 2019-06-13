@@ -53,17 +53,8 @@ class LiveMine : ZExplosive
         LMIN A 20;
     // Fallthrough
     Armed:
-        LMIN B 1
-        {
-            let mis = Spawn("TripwireTrail", pos + (0, 0, height / 2));
-            mis.target = self;
-            mis.angle = angle;
-            mis.pitch = pitch - 90;
-
-            return ZWL_Tripwire(pitchOfs: -90);
-
-            //return ZWL_Proximity(128, "Death", ZPF_DetectEnemies | ZPF_DetectFriends);
-        }
+        LMIN B 1 ZWL_Tripwire(trailType: "TripwireTrail", pitchOfs: -90);
+        //LMIN B 1 ZWL_Proximity(128, "Death", ZPF_DetectEnemies | ZPF_DetectFriends);
         Loop;
     Death:
         /*

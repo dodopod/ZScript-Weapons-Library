@@ -159,11 +159,12 @@ class ZExplosive : Actor
     // TODO: flags
     // Sets off explosive if anything crosses beam.
     State ZWL_Tripwire(
-        StateLabel st = "Death",    // State to jump to
-        Vector3 offset = (0, 0, 0), // Offset for beam
-        double angleOfs = 0,        // Angle to fire beam at
-        double pitchOfs = 0,        // Pitch to fire beam at
-        int range = 8192)           // Maximum detection range
+        StateLabel st = "Death",        // State to jump to
+        Class<Actor> trailType = null,  // Type of trail to show for beam
+        Vector3 offset = (0, 0, 0),     // Offset for beam
+        double angleOfs = 0,            // Angle to fire beam at
+        double pitchOfs = 0,            // Pitch to fire beam at
+        int range = 8192)               // Maximum detection range
     {
         FLineTraceData trace;
         LineTrace(angle + angleOfs, range, pitch + pitchOfs, 0, offset.z, offset.x, offset.y, trace);
@@ -172,6 +173,13 @@ class ZExplosive : Actor
         {
             A_PlaySound(deathSound);
             return ResolveState(st);
+        }
+
+        if (trailType)
+        {
+            let spot = Spawn("Actor", trace.hitLocation);
+            SpawnMissileXYZ(pos + offset, spot, trailType);
+            spot.Destroy();
         }
 
         return ResolveState(null);
