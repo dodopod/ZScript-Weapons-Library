@@ -215,8 +215,12 @@ class ZExplosive : Actor
     void ZWL_LaserGuidedMissile(double maxTurnAngle)
     {
         if (!target) return;
-        double zOffset = target.height / 2;
 
+        // Init pitch, since ZWL_FireProjectile doesn't set pitch, yet.
+        // Honestly, I've put much more work into working around this than it would take to change it. Come 1.0, though.
+        if (pitch == 0) pitch = -VectorAngle(vel.xy.Length(), vel.z);
+
+        double zOffset = target.height / 2;
         if (PlayerPawn(target) && target.player)
         {
             zOffset += PlayerPawn(target).attackZOffset;
