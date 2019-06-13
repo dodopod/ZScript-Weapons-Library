@@ -105,9 +105,15 @@ class ZTracerTrail : ZTrail
 }
 
 
-class ZModelTracer : ZBullet
+class ZMeshTracer : ZBullet
 {
-    ZModelTracerTrail trail;
+    ZMeshTracerTrail trail;
+
+
+    Default
+    {
+        Scale 32;
+    }
 
 
     States
@@ -122,7 +128,7 @@ class ZModelTracer : ZBullet
     {
         Super.PostBeginPlay();
 
-        trail = ZModelTracerTrail(Spawn("ZModelTracerTrail", pos));
+        trail = ZMeshTracerTrail(Spawn("ZMeshTracerTrail", pos));
         trail.scale.x = scale.x;
         trail.scale.y = scale.y;
     }
@@ -146,7 +152,7 @@ class ZModelTracer : ZBullet
     }
 }
 
-class ZModelTracerTrail : ZTrail
+class ZMeshTracerTrail : ZTrail
 {
     Default
     {

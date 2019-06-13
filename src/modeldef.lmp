@@ -1,8 +1,9 @@
-Model ZModelTracerTrail
+Model ZMeshTracerTrail
 {
 	Path "models/BulletTracer"
 	Model 0 "BulletTracer.md3"
 	Skin 0 "BulletTracer.png"
+    Scale 0.1 0.1 0.1
 	AngleOffset 90
 	DontCullBackfaces
     PitchFromMomentum

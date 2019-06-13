@@ -35,12 +35,11 @@ class PistolEmptyMag : ZCasing
     }
 }
 
-class PistolTracer : ZModelTracer
+class PistolTracer : ZMeshTracer
 {
     Default
     {
         Speed 40;
-        Scale 3;
         Decal "";
         ZBullet.AirFriction 1;
         ZBullet.PuffType "";
