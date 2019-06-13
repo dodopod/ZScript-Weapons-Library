@@ -1,7 +1,8 @@
-class GrenadeFragment : ZTracer
+class GrenadeFragment : ZModelTracer
 {
     Default
     {
+        Scale 3;
         Speed 32;
         ZBullet.AirFriction 1;
     }
